@@ -34,7 +34,7 @@ swift build
 open dist/Bug.app
 ```
 
-Use the packaged app for recording: its bundle supplies macOS microphone usage text and the MP3 encoder. `swift run Bug` is only suitable for interface development; permission identity and MP3 encoding require the bundle. The app is ad-hoc signed for local use. Developer ID signing, notarization, and updates are future distribution work.
+Use the packaged app for recording: its bundle supplies macOS microphone usage text and the MP3 encoder. `swift run Bug` is only suitable for interface development; permission identity and MP3 encoding require the bundle. Packaging uses ad-hoc signing by default, which can invalidate capture permissions after an update. Set `BUG_SIGNING_IDENTITY` to an existing Apple Development or Developer ID Application identity for stable signing; see [permission recovery and signing](docs/PERMISSIONS.md). Notarization and automatic updates remain future distribution work.
 
 ## Record
 
@@ -99,3 +99,5 @@ iconutil -c icns .build/icon/Bug.iconset -o Resources/Bug.icns
 See `THIRD_PARTY_NOTICES.md` for encoder attribution.
 
 `scripts/test.sh` exposes the bundled Swift Testing framework to SwiftPM's generated test runner when using standalone Command Line Tools. A plain `swift test` can compile tests but discover none in that environment; require an explicit test count in the output.
+
+If Bug is enabled in System Settings but still reports denied capture, follow [permission recovery](docs/PERMISSIONS.md#restore-the-current-build). A saved grant can belong to an older ad-hoc build.

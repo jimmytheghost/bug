@@ -1,5 +1,14 @@
 # Validation · 2026-09-07
 
+## Permission recovery and packaging follow-up
+
+- The screenshot showed permission enabled while capture failed. Read-only `tccd` logs explicitly reported mismatched code requirements: the saved v0.1.0 hash versus the running v0.3.0 hash. This confirms a signing-identity mismatch, not an inference from the toggle alone.
+- `tccutil reset ScreenCapture com.jimmyweber.bug` succeeded. No other app/service grant was reset; recordings and the installed app were untouched. User restart/reapproval and actual capture remain pending.
+- `security find-identity -v -p codesigning` found **zero valid identities**. Certificate signing and permission persistence across two builds cannot be claimed as tested.
+- Shell syntax check, `swift build`, and **46 tests in 6 suites** passed.
+- Default packaging to isolated `.build/package-signing-check/Bug.app` passed, emitted the ad-hoc warning, and passed deep/strict signature verification. It did not replace or launch `dist/Bug.app`.
+- Recovery and stable-signing instructions are in [PERMISSIONS.md](PERMISSIONS.md).
+
 ## Current release · v0.3.0 Silence reminder
 
 - The user reported an accidentally forgotten recording producing over 1 GB of silence. This is the motivation for the reminder; it does not establish live signal quality or all earlier acceptance results.

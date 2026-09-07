@@ -18,6 +18,8 @@ Native SwiftUI macOS 15+ menu bar audio recorder, part of the Worklog suite.
 3. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for canonical implementation contracts.
 4. Read [docs/PLAN.md](docs/PLAN.md), [docs/VALIDATION.md](docs/VALIDATION.md), and [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) before claiming completion or testing live capture.
 
+For permission failures and packaging changes, also read [docs/PERMISSIONS.md](docs/PERMISSIONS.md). Preserve the installed bundle while the user reauthorizes it; validate packaging in a separate output directory. An enabled privacy toggle does not prove the current code identity is authorized.
+
 These documents are the repo's canon. Keep implementation facts synchronized with code; record actual validation separately from planned checks. Do not treat user praise as evidence of passed live tests. No previous subagent remains an active dependency; the completed work is in the repo.
 
 ## Delivery workflow
@@ -33,3 +35,5 @@ The repository is **private** at `https://github.com/jimmytheghost/bug`; preserv
 - VALIDATION: dated evidence with environment and explicit test counts.
 - ACCEPTANCE: hands-on checkboxes; check only with observed results and record date/environment.
 - THIRD_PARTY_NOTICES: encoder version, source hash, license, and packaging obligations. Preserve upstream license text verbatim.
+
+- PERMISSIONS: signing identity, scoped recovery, and confirmed permission incidents.

@@ -12,6 +12,12 @@ The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Person
 
 The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
 
+## Current permission incident
+
+The user reported denied capture with Bug enabled in System Settings. macOS logs confirmed the saved v0.1.0 ad-hoc requirement did not match the running v0.3.0 binary. Bug's ScreenCapture grant was reset successfully; **user quit/reopen, reapproval, and a successful recording remain pending**. The installed bundle and recordings were untouched. See [PERMISSIONS.md](PERMISSIONS.md) for exact recovery steps.
+
+Packaging now accepts `BUG_SIGNING_IDENTITY`, signs both encoder and app, and verifies the result. Default ad-hoc builds warn about permission invalidation. This Mac has zero valid signing identities; stable certificate signing and permission persistence across updates remain unverified. Do not rebuild the installed app during reapproval; use a separate staging output for package checks.
+
 ## Verified baseline
 
 - Apple Silicon, macOS 26.6.2, Swift 6.3.3 Command Line Tools.
@@ -63,7 +69,7 @@ AppKit hosting is intentional: a pure SwiftUI `ImageRenderer` rendered native sw
 
 ## Next actions
 
-1. Run the live acceptance checklist with a deliberate test source and the user's permissions. Record the observed outcomes; do not infer them from the synthetic suite.
+1. Complete the pending permission recovery in [PERMISSIONS.md](PERMISSIONS.md), then run the live acceptance checklist with a deliberate test source and the user's permissions. Record the observed outcomes; do not infer them from the synthetic suite.
 2. Investigate any real capture or export failures before adding features. Preserve source files when troubleshooting.
 3. Prioritize the known gaps below with the user. They are observations and follow-up candidates, not approved scope expansion.
 4. Update the affected canon and validation record, commit, and push completed changes. Preserve the repository's private visibility.

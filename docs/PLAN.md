@@ -21,6 +21,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] Pass 33 synthetic tests including Trim and metadata compatibility.
 - [x] Add the independent silence reminder panel and persistent gear setting (v0.3.0).
 - [x] Pass 46 synthetic tests including reminder timing and store action/lifecycle tests.
+- [ ] Complete the current [permission recovery](PERMISSIONS.md), configure an existing stable signing identity, and verify grant persistence across updates. Scoped reset and packaging support are complete; certificate setup and user reapproval are pending.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
 

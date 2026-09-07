@@ -105,7 +105,7 @@ This is fixed-threshold boundary detection, not semantic song/speech detection o
 
 ## Packaging and dependencies
 
-`scripts/prepare-encoder.sh` downloads pinned LAME source, verifies SHA-256, applies the documented export-list adjustment, builds locally, and writes ignored encoder artifacts. `scripts/package-app.sh` builds release Bug and places the dylib in `Contents/Frameworks`; source archive, license, notice, and build recipe go in `Contents/Resources/Encoder`. The nested dylib is ad-hoc signed before the app. No global Homebrew/FFmpeg dependency is used.
+`scripts/prepare-encoder.sh` downloads pinned LAME source, verifies SHA-256, applies the documented export-list adjustment, builds locally, and writes ignored encoder artifacts. `scripts/package-app.sh` builds release Bug and places the dylib in `Contents/Frameworks`; source archive, license, notice, and build recipe go in `Contents/Resources/Encoder`. The nested dylib is signed before the app using the same `BUG_SIGNING_IDENTITY`; absent that variable, both use ad-hoc signing with a warning. Packaging verifies the completed signature. Ad-hoc requirements change with code updates and can invalidate privacy grants; see [PERMISSIONS.md](PERMISSIONS.md). No global Homebrew/FFmpeg dependency is used.
 
 Default MP3 loading uses only the absolute bundled dylib path. Unbundled tests pass an explicit encoder URL. See [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) for the pinned dependency and exact packaging details.
 
