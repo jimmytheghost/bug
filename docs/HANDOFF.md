@@ -1,6 +1,6 @@
 # Agent handoff
 
-Last updated: **2026-09-07**. Version **0.4.1**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
+Last updated: **2026-09-07**. Version **0.4.2**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
 
 ## Where we left off
 
@@ -12,13 +12,19 @@ The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Person
 
 The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
 
+## Session count fix · v0.4.2
+
+User inspection found 6 finalized recordings and 7 empty UUID session directories; the latter contained zero bytes of audio. Earlier Delete All counted only saved metadata entries. It now confirms and trashes all UUID session folders, including empty/unfinished ones. No personal files were deleted in diagnosis. Unrelated files and symlinks are excluded, and only the confirmed IDs are processed. The button works even if only empty sessions remain; active capture/Trim/export still disables it. No synthetic Recording metadata is created for unfinished folders.
+
+51 tests in 7 suites pass, including empty-only cleanup through real Trash on disposable fixtures. Current staged bundle: `dist/updates/v0.4.2/Bug.app`. Running copies were not replaced. Live confirmation testing and permission reapproval remain user steps.
+
 ## Delete All · v0.4.1
 
 Settings now includes **Delete All** with a Cancel/destructive confirmation and saved-recording count. It trashes only the confirmation snapshot, keeps unfinished sessions and external exports, refuses use while capture/Trim/export is active, stops preview playback, refreshes totals, and reports partial failures. The empty library disables the button.
 
 50 tests in 7 suites pass, including successful and partially failed bulk deletion using disposable files and actual macOS Trash. New arrivals after confirmation and unfinished directories survive. Settings layout was inspected offscreen; live confirmation clicks remain pending. A storage test exposed order-dependent enumeration behavior: removed an unnecessary skipDescendants call on symlinks, which could skip the next directory. Foundation enumeration already avoids following symlinks.
 
-The latest bundle is staged at `dist/updates/v0.4.1/Bug.app`; stop capture, quit the old copy, then open it. No running app or personal recording was changed. Permission reapproval may still be needed.
+The latest bundle is staged at `dist/updates/v0.4.2/Bug.app`; stop capture, quit the old copy, then open it. No running app or personal recording was changed. Permission reapproval may still be needed.
 
 ## Library update · v0.4.0
 

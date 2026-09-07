@@ -1,5 +1,11 @@
 # Validation · 2026-09-07
 
+## Session cleanup · v0.4.2
+
+- Read-only directory/metadata inspection found 6 saved recording folders and 7 empty unfinished folders. No personal audio contents were read or deleted.
+- Debug build, 51 tests in 7 suites, and staged release/signature verification passed. New test covers an empty-only library, enabled Delete All, and actual Trash of a disposable session.
+- Bundle staged at `dist/updates/v0.4.2/Bug.app`; interactive confirmation and capture permission checks remain pending.
+
 ## Delete All · v0.4.1
 
 - Debug build and **50 tests in 7 suites passed**. The new parameterized bulk-deletion test runs both success and injected partial failure, using actual macOS Trash on disposable synthetic folders. It verifies confirmed scope, later additions surviving, unfinished-session preservation, totals refresh, and error reporting.

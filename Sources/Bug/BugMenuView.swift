@@ -8,7 +8,7 @@ struct BugMenuView: View {
     @State private var renaming: Recording?
     @State private var newTitle = ""
     @State private var deleting: Recording?
-    @State private var deletingAll: [Recording]?
+    @State private var deletingAll: [UUID]?
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
     init(store: RecorderStore, showingSettings: Bool = false) {
@@ -58,11 +58,11 @@ struct BugMenuView: View {
         )) {
             Button("Cancel", role: .cancel) { deletingAll = nil }
             Button("Delete All", role: .destructive) {
-                if let deletingAll { store.deleteAll(deletingAll) }
+                if let deletingAll { store.deleteSessions(deletingAll) }
                 deletingAll = nil
             }
         } message: {
-            Text("Move all \(deletingAll?.count ?? 0) saved recordings to macOS Trash? Exported copies elsewhere and unfinished sessions are kept. You can recover recordings from Trash; empty it to free disk space.")
+            Text("Move all \(deletingAll?.count ?? 0) session folders to macOS Trash, including saved recordings and empty or unfinished sessions? Exported copies elsewhere are kept. You can recover recordings from Trash; empty it to free disk space.")
         }
     }
 
@@ -309,13 +309,13 @@ struct BugMenuView: View {
             Button("Open recording library") { store.revealLibrary() }
             Button("Delete All", role: .destructive) {
                 store.refreshLibrary()
-                if store.canDeleteAll { deletingAll = store.recordings }
+                if store.canDeleteAll { deletingAll = store.librarySessionIDs }
             }
             .disabled(!store.canDeleteAll)
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.4.1 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.4.2 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

@@ -20,6 +20,18 @@ struct RecordingLibrary {
         try FileManager.default.createDirectory(at: self.root, withIntermediateDirectories: true)
     }
 
+    func sessionIDs() throws -> [UUID] {
+        try FileManager.default.contentsOfDirectory(at: root,
+            includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey], options: .skipsHiddenFiles)
+            .compactMap { url in
+                let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+                guard values.isDirectory == true, values.isSymbolicLink != true,
+                      let id = UUID(uuidString: url.lastPathComponent),
+                      id.uuidString == url.lastPathComponent else { return nil }
+                return id
+            }
+    }
+
     func directory(for id: UUID) -> URL { root.appendingPathComponent(id.uuidString, isDirectory: true) }
 
     func createSession(id: UUID) throws -> URL {
@@ -72,8 +84,13 @@ struct RecordingLibrary {
 
     @discardableResult
     func delete(_ recording: Recording) throws -> URL? {
+        try deleteSession(recording.id)
+    }
+
+    @discardableResult
+    func deleteSession(_ id: UUID) throws -> URL? {
         var destination: NSURL?
-        try FileManager.default.trashItem(at: directory(for: recording.id), resultingItemURL: &destination)
+        try FileManager.default.trashItem(at: directory(for: id), resultingItemURL: &destination)
         return destination as URL?
     }
 }

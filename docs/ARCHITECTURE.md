@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-07** against the v0.4.1 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-07** against the v0.4.2 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -24,7 +24,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `AudioTrimmer.swift` | Conservative boundary scan and persistent 48 kHz trim range |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.1, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.2, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -72,7 +72,7 @@ v0.4.0 adds a visible Trash action with the existing recoverable confirmation. S
 
 The store reloads metadata and sizes at initialization, after Stop/rename/delete, and through `refreshLibrary()`. The view refreshes on appearance using a cancellable task, every five seconds while that task is active, and on application activation. Removed preview entries stop playback/preparation. All refresh scans run synchronously on the main actor and read metadata only; very large numbers of directories may warrant background scanning later. A malformed metadata entry still fails the complete load; files without metadata remain off-list but count toward total size.
 
-v0.4.1 adds Settings **Delete All**. The confirmation holds a recording-array snapshot; only those IDs are processed after confirmation. Store guards reject bulk deletion during capture, Trim, export, or an empty list. Preview is stopped. Each directory moves independently to Trash; failures are counted and reported, then the list and sizes reload. New entries and unfinished sessions are never swept up by deleting the root. Tests inject the trash operation to exercise partial failure while moving successful disposable fixtures through the real FileManager operation.
+v0.4.1 adds Settings **Delete All**. As of v0.4.2 the confirmation holds a UUID session-folder snapshot, including empty/unfinished folders; only those IDs are processed after confirmation. Store guards reject bulk deletion during capture, Trim, export, or no session folders. Preview is stopped. Each directory moves independently to Trash; failures are counted and reported, then the list and sizes reload. New entries after confirmation are never swept up by deleting the root. Unfinished sessions in the snapshot are intentionally included. Only direct UUID directories are eligible; symlinks and unrelated files are excluded. Tests inject the trash operation to exercise partial failure while moving successful disposable fixtures through the real FileManager operation.
 
 ## Export contract
 

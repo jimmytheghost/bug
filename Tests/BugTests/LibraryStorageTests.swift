@@ -82,9 +82,9 @@ struct LibraryStorageTests {
         var trashed: [URL] = []
         defer { for url in trashed { try? FileManager.default.removeItem(at: url) } }
         let store = RecorderStore(library: library, preferences: preferences, startTimer: false,
-                                  trashRecording: { recording in
-            if failOne && recording.id == first.id { throw CocoaError(.fileWriteNoPermission) }
-            if let url = try library.delete(recording) { trashed.append(url) }
+                                  trashRecording: { id in
+            if failOne && id == first.id { throw CocoaError(.fileWriteNoPermission) }
+            if let url = try library.deleteSession(id) { trashed.append(url) }
         })
         let confirmed = store.recordings
         #expect(confirmed.count == 2)
@@ -98,6 +98,28 @@ struct LibraryStorageTests {
         #expect(FileManager.default.fileExists(atPath: unfinished.path))
         #expect(store.libraryBytes == (try library.storageBytes(at: library.root)))
         #expect(trashed.count == (failOne ? 1 : 2))
+    }
+
+    @MainActor @Test func bulkCleanupIncludesEmptySessionsWithoutInventingRecordings() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let library = try RecordingLibrary(root: root)
+        let emptyID = UUID()
+        _ = try library.createSession(id: emptyID)
+        let suite = "BugEmptyTests-\(UUID())"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+        var trashed: URL?
+        defer { if let trashed { try? FileManager.default.removeItem(at: trashed) } }
+        let store = RecorderStore(library: library, preferences: preferences, startTimer: false,
+                                  trashRecording: { id in trashed = try library.deleteSession(id) })
+        #expect(store.recordings.isEmpty)
+        #expect(store.canDeleteAll)
+        #expect(store.librarySessionIDs == [emptyID])
+        store.deleteSessions(store.librarySessionIDs)
+        #expect(store.librarySessionIDs.isEmpty)
+        #expect(!store.canDeleteAll)
+        #expect(trashed != nil)
     }
 
 }

@@ -23,6 +23,7 @@ final class RecorderStore: ObservableObject {
     }
     @Published private(set) var recordings: [Recording] = []
     @Published private(set) var recordingBytes: [UUID: Int64] = [:]
+    @Published private(set) var librarySessionIDs: [UUID] = []
     @Published private(set) var libraryBytes: Int64?
 
     @Published private(set) var levels: [Float] = Array(repeating: 0, count: 64)
@@ -35,7 +36,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var trimmingID: UUID?
 
     private var library: RecordingLibrary?
-    private let trashRecording: ((Recording) throws -> Void)?
+    private let trashRecording: ((UUID) throws -> Void)?
     private let engine: any AudioCapturing
     private let exporter = AudioExporter()
     private var sessionID: UUID?
@@ -53,13 +54,13 @@ final class RecorderStore: ObservableObject {
     private var silenceMonitor = SilenceMonitor()
 
     var isBusy: Bool { phase != .idle || trimmingID != nil }
-    var canDeleteAll: Bool { !isBusy && exportingID == nil && !recordings.isEmpty }
+    var canDeleteAll: Bool { !isBusy && exportingID == nil && !librarySessionIDs.isEmpty }
     var canQuit: Bool { !isBusy && exportingID == nil }
     var canTrim: Bool { !isBusy && exportingID == nil }
 
     init(library: RecordingLibrary? = nil, preferences: UserDefaults = .standard, startTimer: Bool = true,
          engine: any AudioCapturing = CaptureEngine(), reminderPresenter: (any SilenceReminderPresenting)? = nil,
-         trashRecording: ((Recording) throws -> Void)? = nil,
+         trashRecording: ((UUID) throws -> Void)? = nil,
          monotonicTime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
         self.trashRecording = trashRecording
         self.preferences = preferences
@@ -264,26 +265,31 @@ final class RecorderStore: ObservableObject {
 
     /// Only deletes the snapshot the user confirmed, never newly added recordings.
     func deleteAll(_ confirmed: [Recording]) {
+        deleteSessions(confirmed.map(\.id))
+    }
+
+    func deleteSessions(_ confirmed: [UUID]) {
         guard canDeleteAll, let library else { return }
         stopPlayback()
         errorMessage = nil
         notice = nil
         var moved = 0
         var failures = 0
-        for recording in confirmed {
-            guard FileManager.default.fileExists(atPath: library.directory(for: recording.id).path) else { continue }
+        for id in Set(confirmed) {
+            guard librarySessionIDs.contains(id) else { continue }
+            guard FileManager.default.fileExists(atPath: library.directory(for: id).path) else { continue }
             do {
-                if let trashRecording { try trashRecording(recording) }
-                else { try library.delete(recording) }
+                if let trashRecording { try trashRecording(id) }
+                else { try library.deleteSession(id) }
                 moved += 1
             } catch { failures += 1 }
         }
         do { try reloadLibrary() }
         catch { errorMessage = "Could not refresh the library after deletion: \(error.localizedDescription)" }
         if failures > 0 {
-            errorMessage = "Moved \(moved) recordings to Trash. Could not move \(failures); they remain in the Library folder."
+            errorMessage = "Moved \(moved) session folders to Trash. Could not move \(failures); they remain in the Library folder."
         } else {
-            notice = "Moved \(moved) recordings to Trash. Exported copies are unchanged."
+            notice = "Moved \(moved) session folders to Trash. Exported copies are unchanged."
         }
     }
 
@@ -330,6 +336,7 @@ final class RecorderStore: ObservableObject {
     /// Reads metadata and file sizes only; never reads audio samples.
     private func reloadLibrary() throws {
         guard let library else { return }
+        librarySessionIDs = try library.sessionIDs()
         let current = try library.load()
         if let id = playingID ?? preparingPlaybackID, !current.contains(where: { $0.id == id }) {
             stopPlayback()

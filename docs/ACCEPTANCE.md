@@ -56,3 +56,8 @@ Capture is never started automatically by app launch or by tests.
 - [ ] With disposable recordings, click Settings → Delete All. Verify the count and warning, then Cancel and confirm nothing changes.
 - [ ] Confirm Delete All. Verify list/totals update, sources are recoverable from Trash, and exports outside the source folders and unfinished sessions remain.
 - [ ] Check disabled state for empty library, recording, Trim, and export. Verify bulk deletion stops preview playback.
+
+## Session cleanup · v0.4.2
+
+- [ ] Verify Delete All counts both finalized and empty/unfinished UUID session folders; unrelated files are excluded.
+- [ ] Confirm cleanup on disposable saved and unfinished sessions, including an empty-only library. Verify Trash recovery and preservation of sessions added after confirmation. This supersedes v0.4.1's unfinished-session preservation behavior.
