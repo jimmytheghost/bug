@@ -2,7 +2,7 @@
 
 ## Confirmed incident · 2026-09-07
 
-The user enabled Bug under **Screen & System Audio Recording**, but v0.3.0 repeatedly returned a permission error. macOS `tccd` logs explicitly reported `Failed to match existing code requirement` for `com.jimmyweber.bug`. The saved requirement was the v0.1.0 cdhash (`2534b0c9…`); the current build required `12d29f34…`.
+The user enabled Bug under **Screen & System Audio Recording**, but v0.3.0 repeatedly returned a permission error. macOS `tccd` logs explicitly reported `Failed to match existing code requirement` for `com.jimmyweber.bug`. The saved requirement was the v0.1.0 cdhash (`2534b0c9…`); the v0.3.0 build required `12d29f34…`.
 
 The release packages used ad-hoc signing (`codesign --sign -`). Its default designated requirement is tied to that version's code hash, so rebuilding can invalidate a previous permission even though System Settings still displays an enabled entry. This is documented by [Apple's code-signing requirements technote](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements) and confirmed by [Apple DTS for ScreenCaptureKit](https://developer.apple.com/forums/thread/819406).
 
@@ -17,10 +17,10 @@ The release packages used ad-hoc signing (`codesign --sign -`). Its default desi
    tccutil reset ScreenCapture com.jimmyweber.bug
    ```
 
-3. Open the intended `dist/Bug.app`, click Record, and approve that copy in **System Settings → Privacy & Security → Screen & System Audio Recording**.
+3. Open the intended current app (`dist/updates/v0.4.4/Bug.app` for the latest staged release; `dist/Bug.app` is older), click Record, and approve that copy in **System Settings → Privacy & Security → Screen & System Audio Recording**.
 4. Follow macOS's Quit & Reopen instruction if offered, or quit/reopen Bug once after changing permission. Try Record again.
 
-During this incident, the scoped reset above succeeded. The running app was not terminated and the installed bundle was not replaced; user restart/reapproval and a successful recording remain pending. The reset affects Bug only, not other apps or its saved recordings. Do not reset all TCC services, edit the privacy database, or grant permissions programmatically. Microphone permission is separate and was not reset.
+During this incident, the scoped reset above succeeded. The running app was not terminated and the installed bundle was not replaced; successful live capture after reapproval has not been explicitly verified. Later feedback confirmed library cleanup, which does not exercise capture permission. The reset affects Bug only, not other apps or its saved recordings. Do not reset all TCC services, edit the privacy database, or grant permissions programmatically. Microphone permission is separate and was not reset.
 
 Avoid launching archived versions under `dist/previous/` or running the unbundled executable while diagnosing this. Confirm the running bundle path and version instead of assuming the menu bar icon identifies a particular copy.
 
@@ -30,7 +30,7 @@ Packaging now supports an existing certificate identity:
 
 ```sh
 security find-identity -v -p codesigning
-BUG_SIGNING_IDENTITY='Apple Development: Your Name (IDENTIFIER)' ./scripts/package-app.sh
+BUG_SIGNING_IDENTITY='Apple Development: Your Name (IDENTIFIER)' ./scripts/package-app.sh "$PWD/.build/signed-package"
 ```
 
 Replace the example with the exact identity name or fingerprint from the first command. Use the same identity for successive builds. The script signs the encoder and the app with that identity and verifies the bundle. If an explicitly selected identity is unavailable, signing fails rather than silently falling back to ad-hoc signing.

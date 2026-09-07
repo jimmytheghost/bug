@@ -2,7 +2,7 @@
 
 ## Confirmed scope
 
-macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. The user also approved a silence reminder for initial and later silence: 15/30/60 seconds or Off, 30-second default, either audio source counts, Keep Recording resets the interval, Stop Recording saves, and ignoring continues recording. No accounts, network service, or uploads.
+macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. The user also approved a silence reminder for initial and later silence: 15/30/60 seconds or Off, 30-second default, either audio source counts, Keep Recording resets the interval, Stop Recording saves, and ignoring continues recording. Library management includes visible Trash controls, size reporting, refresh, and confirmed Delete All including unfinished session folders. No accounts, network service, or uploads.
 
 ## Architecture
 
@@ -23,7 +23,12 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] Pass 46 synthetic tests including reminder timing and store action/lifecycle tests.
 - [x] Add visible Trash controls, file and library sizes, and panel refresh (v0.4.0); pass 49 tests in 7 suites.
 - [x] Add Settings Delete All with confirmation, snapshot scope, and partial-failure handling (v0.4.1); pass 50 tests in 7 suites.
-- [ ] Complete the current [permission recovery](PERMISSIONS.md), configure an existing stable signing identity, and verify grant persistence across updates. Scoped reset and packaging support are complete; certificate setup and user reapproval are pending.
+- [x] v0.4.2: include empty/unfinished UUID session folders in confirmed bulk cleanup; 51 tests pass.
+
+- [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. User confirmed the successful Delete All flow; broader Cancel/recovery checks remain pending.
+
+- [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.
+- [ ] Verify live capture authorization and [permission recovery](PERMISSIONS.md) if needed, configure an existing stable signing identity, and verify grant persistence across updates. Scoped reset and packaging support are complete; certificate setup and user reapproval are pending.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
 
@@ -49,9 +54,3 @@ Automatic retention and low-disk warnings are follow-up candidates; Trash/size/r
 
 
 Distribution signing/notarization, automatic updates, accounts/cloud sync, per-app capture selection, pause/resume, and global shortcuts are not part of the confirmed first release. Do not silently expand into these features. Canonical implementation details are in [ARCHITECTURE.md](ARCHITECTURE.md).
-
-- [x] v0.4.2: include empty/unfinished UUID session folders in confirmed bulk cleanup; 51 tests pass.
-
-- [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. Native interaction verification remains pending.
-
-- [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.

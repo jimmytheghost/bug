@@ -1,5 +1,7 @@
 # Validation · 2026-09-07
 
+Current baseline: v0.4.4, 52 tests in 7 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
 ## Footer spacing · v0.4.4
 
 - User confirmed v0.4.3 deletion succeeds; screenshot showed 13 sessions moved, zero recordings, and a cramped footer.
@@ -11,7 +13,7 @@
 
 - User reported the previous SwiftUI confirmation disappearing with the menu and returning on reopen. Native UI behavior was not reproduced independently; replaced the popover-bound alert with standalone NSAlert ownership.
 - Debug build and **52 tests in 7 suites passed**. New parameterized test checks Cancel, confirm, duplicate suppression, and disposable Trash results without a menu view.
-- Staged release and signature verification passed at `dist/updates/v0.4.3/Bug.app`. No real recording was deleted or captured. Native dialog click/activation and capture permissions remain manual checks.
+- Staged release and signature verification passed at `dist/updates/v0.4.3/Bug.app`. No real recording was deleted or captured. The user subsequently confirmed the successful Delete All interaction; see the v0.4.4 evidence above. Cancel/recovery and capture permissions remain manual checks.
 
 ## Session cleanup · v0.4.2
 
@@ -43,7 +45,7 @@
 - Default packaging to isolated `.build/package-signing-check/Bug.app` passed, emitted the ad-hoc warning, and passed deep/strict signature verification. It did not replace or launch `dist/Bug.app`.
 - Recovery and stable-signing instructions are in [PERMISSIONS.md](PERMISSIONS.md).
 
-## Current release · v0.3.0 Silence reminder
+## Historical release · v0.3.0 Silence reminder
 
 - The user reported an accidentally forgotten recording producing over 1 GB of silence. This is the motivation for the reminder; it does not establish live signal quality or all earlier acceptance results.
 - `swift build` and release packaging passed. v0.3.0 Info.plist and `codesign --verify --deep --strict` passed. The previous bundle was preserved under ignored `dist/previous/`, with no termination of the running app. Quit/reopen is required to load the new code.
@@ -96,3 +98,9 @@ The corrected runner exposed a test-side buffer-lifetime crash. Capture tests no
 ## Documentation and repository check · 2026-09-07
 
 GitHub reported `jimmytheghost/bug` as PRIVATE, with `main` synchronized to the initial implementation before documentation edits. README, agent instructions, plan, acceptance status, and encoder packaging notes were reconciled against source. Added canonical architecture and a current handoff. Repository-local Markdown links, code fences, and the documentation diff were checked. This review did not launch the app, record audio, or rerun the audio suite.
+
+## End-of-day documentation audit
+
+Reconciled README, handoff, architecture references, permissions, plan, and acceptance with v0.4.4 source/build 8 and implementation commit `180cf79`. Replaced accumulated handoff history with current behavior, corrected superseded deletion checks, marked the user-confirmed Delete All result, and preserved historical validation evidence. Updated build commands to use staging directories. GitHub reported the repository PRIVATE.
+
+Checked repository-local Markdown file links, paired code fences, version metadata, and diff formatting. This documentation-only pass did not rebuild, launch an app, record audio, reset permissions, or access/delete personal recordings. The 52-test result is from the preceding implementation pass.

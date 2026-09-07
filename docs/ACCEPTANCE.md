@@ -1,10 +1,10 @@
 # Hands-on acceptance
 
-**Status: the checklist remains pending as of 2026-09-07. The user reported a forgotten recording producing over 1 GB of silence, but has not supplied the individual results below.** Add date, macOS/device details, result, and any issue reference when completing a check. User approval of appearance is not a substitute for these checks.
+**Status: partially verified as of 2026-09-07.** The user confirmed the v0.4.3 Delete All success path and supplied a screenshot showing 13 sessions moved with zero recordings remaining. Broader checks below remain pending. Add date, macOS/device details, and evidence when completing a check; approval of appearance does not establish recording quality.
 
 Automated tests use synthetic samples. These checks require the user's macOS permissions and actual audio sources; do not mark them passed based on compilation alone.
 
-- [ ] Open `dist/Bug.app`. Confirm one ladybug menu bar item, no Dock icon, and a compact Worklog-style panel.
+- [ ] Open `dist/updates/v0.4.4/Bug.app`. Confirm one ladybug menu bar item, no Dock icon, and a compact Worklog-style panel.
 - [ ] Deny system recording permission once. Confirm a useful error and working permission settings link. Grant permission and reopen Bug if macOS requests it.
 - [ ] Play known non-protected audio. Record with microphone off. Confirm waveform and timer, close/reopen the panel, stop, and confirm a new library entry.
 - [ ] Play the entry. Export WAV and MP3 and listen to both; compare beginning, middle, end, stereo channels, and duration.
@@ -44,30 +44,24 @@ Capture is never started automatically by app launch or by tests.
 
 ## Library storage · v0.4.0
 
-- [ ] Stop any active capture, quit the old Bug, and open `dist/updates/v0.4.0/Bug.app`. Reapprove capture if needed.
+- [ ] Stop any active capture, quit the old Bug, and open `dist/updates/v0.4.4/Bug.app`. Reapprove capture if needed.
 - [ ] Verify visible Trash buttons on short/long titles and trimmed/microphone recordings; cancel once, then confirm deletion on a disposable recording.
 - [ ] Confirm the row and totals update, exported copies outside its folder stay intact, and the source folder can be restored from macOS Trash.
 - [ ] Move a disposable UUID recording folder out in Finder and restore it. Verify refresh with the panel open (within about five seconds), after reopening, and when returning from Finder.
 - [ ] Check row sizes and the full folder total, including an unfinished session. Verify Trim changes duration without reducing source storage.
 - [ ] During playback, remove the entry through Finder and verify refresh stops playback. Verify Trash is disabled for the entry undergoing Trim/export.
 
-## Delete All · v0.4.1
+## Delete All · current behavior
 
-- [ ] With disposable recordings, click Settings → Delete All. Verify the count and warning, then Cancel and confirm nothing changes.
-- [ ] Confirm Delete All. Verify list/totals update, sources are recoverable from Trash, and exports outside the source folders and unfinished sessions remain.
-- [ ] Check disabled state for empty library, recording, Trim, and export. Verify bulk deletion stops preview playback.
-
-## Session cleanup · v0.4.2
-
-- [ ] Verify Delete All counts both finalized and empty/unfinished UUID session folders; unrelated files are excluded.
-- [ ] Confirm cleanup on disposable saved and unfinished sessions, including an empty-only library. Verify Trash recovery and preservation of sessions added after confirmation. This supersedes v0.4.1's unfinished-session preservation behavior.
-
-## Independent confirmation · v0.4.3
-
-- [ ] Open the latest staged build after quitting the old copy. Click Settings → Delete All; verify a standalone warning remains usable when the menu panel closes.
-- [ ] Cancel and reopen Settings: no deletion and no recurring warning. Repeat and confirm using disposable sessions: verify Trash movement and updated counts, then reopen and confirm the old warning does not return.
+- [x] **2026-09-07, user's development Mac, v0.4.3:** confirm deletion succeeds through the standalone warning. User said “Works great” and supplied a screenshot showing 13 sessions moved and zero recordings remaining.
+- [ ] Cancel and reopen Settings: verify no deletion and no recurring warning.
+- [ ] Confirm with disposable saved and unfinished sessions; verify recoverable source folders in Trash, exported copies outside source folders unchanged, and totals updated.
+- [ ] Verify the session count includes empty/unfinished UUID folders and excludes unrelated files. Test an empty-only library and sessions added after confirmation.
+- [ ] Check disabled state with no session folders, during recording, Trim, and export. Verify bulk deletion stops preview playback.
+- [ ] Verify partial-failure messaging using disposable files and an injected/unwritable fixture, without risking personal recordings.
 
 ## Footer · v0.4.4
 
 - [ ] Confirm footer padding after Delete All with the success notice visible, after dismissing the notice, with saved recordings, and in Settings. Verify the panel resizes without clipping its bottom controls.
-- User reported v0.4.3 Delete All works and supplied a screenshot showing all 13 sessions moved and zero recordings remaining. This confirms that deletion flow, not every recovery/cancellation scenario.
+
+Earlier v0.4.1 preservation of unfinished sessions and its popover-attached confirmation were superseded by v0.4.2/v0.4.3. Test the current behavior above.
