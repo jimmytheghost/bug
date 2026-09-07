@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.1.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.2.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The initial implementation passed 21 synthetic tests and release/signature checks. Live recording, permission flows, and real-device behavior have not been verified. User feedback was positive, but did not explicitly confirm those tests.
+The current implementation passed 33 synthetic tests, including Trim, and release/signature checks. Live recording, permission flows, and real-device behavior have not been verified. User feedback was positive, but did not explicitly confirm those tests.
 
 ## What it does
 
@@ -16,6 +16,7 @@ The initial implementation passed 21 synthetic tests and release/signature check
 - Shows a live waveform and elapsed time while recording, including when the panel is closed.
 - Saves stopped recordings to a local library with playback, rename, and Move to Trash.
 - Exports 48 kHz / 24-bit stereo WAV or 320 kbps stereo MP3.
+- Offers optional **Trim** with immediate application, persistent Undo, and 0.5-second head/tail padding by default.
 - Offers launch at login. No accounts, uploads, or background web service.
 
 ## Build and run
@@ -41,6 +42,16 @@ Click the ladybug in the menu bar, optionally enable **Include microphone**, the
 Use the recording's **…** menu to export WAV or MP3, rename it, or move its source files to Trash. The play button previews the combined audio; it prepares a temporary WAV first, so long recordings may take time. Original recordings stay in the library after export.
 
 Recordings live in `~/Library/Application Support/Bug/Recordings/`. The **Library folder** button opens this directory. Each session has lossless source CAF tracks and JSON metadata. WAV/MP3 are created only on export. Audio is written incrementally; uncompressed stereo sources use roughly 1.4 GB per hour, plus microphone audio. The library does not automatically delete recordings. Interrupted sessions without finalized JSON metadata remain on disk but are not automatically imported into the library; see [known gaps](docs/HANDOFF.md#known-gaps-and-operational-caveats).
+
+## Trim
+
+After stopping, click **Trim** beside the saved recording. It removes leading and trailing silence while keeping up to **0.5 seconds at each end**, and leaves pauses inside the recording intact. The duration updates immediately after analysis, and the button becomes **Undo**. Trim is also in the recording's **…** menu, so older recordings can be processed later.
+
+Playback and subsequent WAV/MP3 exports use the trim. Original CAF files stay unchanged; **Undo** restores the full recording, including after relaunch. Previously exported files do not change. An entirely silent track or one with no removable silence stays unchanged.
+
+In Settings, **Trim padding** offers none, 0.25, 0.5, 1, or 2 seconds at each end. It affects the next Trim operation; Undo first to reapply a different padding to an already trimmed recording. Padding is limited to available audio and never inserts new silence.
+
+Detection uses a conservative fixed -60 dBFS threshold across both channels of each source. Quiet fades below that threshold may be treated as silence; background noise above it may prevent a trim. It detects audio boundaries, not the start/end of a specific song: other audible material before or after a song is retained. Always use Undo if the result is not what you want.
 
 ## Capture and format details
 

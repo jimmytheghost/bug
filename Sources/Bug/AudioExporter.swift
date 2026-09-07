@@ -21,17 +21,19 @@ struct AudioExporter: Sendable {
     /// Explicit override is useful for development/tests; packaged builds load only their bundled encoder.
     var encoderURL: URL? = nil
 
-    func export(systemURL: URL, microphoneURL: URL?, to destination: URL, format: AudioExportFormat) async throws {
+    func export(systemURL: URL, microphoneURL: URL?, to destination: URL, format: AudioExportFormat,
+                trimRange: AudioTrimRange? = nil) async throws {
         let worker = Task.detached(priority: .utility) {
             try Self.run(systemURL: systemURL, microphoneURL: microphoneURL, destination: destination,
-                         format: format, encoderURL: encoderURL)
+                         format: format, encoderURL: encoderURL, trimRange: trimRange)
         }
         try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
     }
 
     private static func run(systemURL: URL, microphoneURL: URL?, destination: URL,
-                            format: AudioExportFormat, encoderURL: URL?) throws {
+                            format: AudioExportFormat, encoderURL: URL?, trimRange: AudioTrimRange?) throws {
         try Task.checkCancellation()
+        if let trimRange, !trimRange.isValid { throw AudioTrimError.invalidRange }
         let sources = [systemURL] + (microphoneURL.map { [$0] } ?? [])
         func protectSources() throws {
             for source in sources {
@@ -50,7 +52,7 @@ struct AudioExporter: Sendable {
         // MP3 reconstruction can overshoot; this is sample-peak protection, not a true-peak limiter.
         var peak: Float = 0
         var frames: UInt64 = 0
-        try mix(sources) { samples in
+        try mix(sources, range: trimRange) { samples in
             for sample in samples { peak = max(peak, abs(sample)) }
             frames += UInt64(samples.count / 2)
         }
@@ -65,7 +67,7 @@ struct AudioExporter: Sendable {
         let encoder = format == .mp3 ? try ExportMP3Encoder(url: encoderURL) : nil
         if format == .wav { try output.write(contentsOf: wavHeader(frames: frames)) }
         var written: UInt64 = 0
-        try mix(sources) { samples in
+        try mix(sources, range: trimRange) { samples in
             let scaled = samples.map { max(-0.95, min(0.95, $0 * gain)) }
             if let encoder {
                 try output.write(contentsOf: encoder.encode(scaled))
@@ -91,19 +93,32 @@ struct AudioExporter: Sendable {
         guard rename(temp.path, destination.path) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
     }
 
-    private static func mix(_ urls: [URL], consume: ([Float]) throws -> Void) throws {
+    private static func mix(_ urls: [URL], range: AudioTrimRange?, consume: ([Float]) throws -> Void) throws {
         let tracks = try urls.map { try ExportTrack(url: $0) }
+        var position: Int64 = 0
         while true {
             try Task.checkCancellation()
             let blocks = try tracks.map { try $0.read() }
             let count = blocks.map(\.count).max() ?? 0
-            if count == 0 { return }
+            if count == 0 {
+                if let range, position < range.endFrame { throw AudioTrimError.invalidRange }
+                return
+            }
             var mixed = [Float](repeating: 0, count: count)
             for block in blocks {
                 for index in block.indices { mixed[index] += block[index] }
             }
             guard mixed.allSatisfy(\.isFinite) else { throw AudioExportError.invalidSource }
-            try consume(mixed)
+            let end = position + Int64(count / 2)
+            if let range {
+                let lower = max(position, range.startFrame)
+                let upper = min(end, range.endFrame)
+                if upper > lower {
+                    try consume(Array(mixed[Int(lower - position) * 2..<Int(upper - position) * 2]))
+                }
+                if end >= range.endFrame { return }
+            } else { try consume(mixed) }
+            position = end
         }
     }
 
@@ -122,7 +137,7 @@ struct AudioExporter: Sendable {
 }
 
 /// Streaming sample-rate conversion; at most 4096 frames per input/output buffer.
-private final class ExportTrack {
+final class ExportTrack {
     let file: AVAudioFile
     let converter: AVAudioConverter
     let input: AVAudioPCMBuffer

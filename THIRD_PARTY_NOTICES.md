@@ -45,7 +45,7 @@ bundled encoder; missing or incompatible libraries produce a recoverable export 
 
 ## Audio behavior and limits
 
-Capture's common-epoch leading silence is retained. Mono is duplicated to stereo;
+Capture's common-epoch alignment is retained. When an explicit Trim range is supplied, both export passes select the same half-open 48 kHz frame interval; otherwise the entire source timeline is exported. Mono is duplicated to stereo;
 stereo channels are preserved. Each input is resampled independently to 48 kHz,
 then summed with zero padding through the longest track. Supported inputs are mono
 or stereo at 8–192 kHz; multichannel input fails explicitly.

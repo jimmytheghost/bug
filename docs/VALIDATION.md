@@ -1,5 +1,18 @@
 # Validation · 2026-09-07
 
+## Current release · v0.2.0 Trim
+
+- `swift build` passed on the same Apple Silicon/macOS/Swift host documented below.
+- `scripts/test.sh`: **33 executed tests in 4 suites passed**, including 12 Trim tests and all 21 existing tests.
+- Verified the 8-second silent head / 10-second silent tail example, 0.5-second padding, internal-pause preservation, stereo channels, quiet audio, phase-cancelling sources, microphone resampling, no-op/silent/short tracks, and adjustable/clamped padding.
+- Verified trimmed WAV samples/duration and actual MP3 decode duration; source bytes stay unchanged. Invalid bounds/cancellation preserve an existing destination. Metadata read/write tests cover legacy recordings, saved Trim across relaunch, Undo, stale rename requests, repeated Trim, missing sources, and write failures for both Trim and Undo.
+- Offscreen isolated-fixture layout checks covered the **Trim** button, **Undo**/trimmed duration, and padding settings. They did not exercise live UI clicks or capture real audio.
+- v0.2.0 release packaging, Info.plist, bundled encoder notices, and `codesign --verify --deep --strict` passed. Updated `dist/Bug.app` is approximately 3.3 MB.
+- The prior running app was not terminated. Its bundle was preserved under ignored `dist/previous/` before the new bundle was moved into place. Quit and reopen to use v0.2.0; no active recording was deliberately interrupted.
+- Documentation links and diff formatting checked. Real-device and live-listening Trim acceptance remains pending in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Original release evidence · v0.1.0
+
 Host: Apple Silicon, macOS 26.6.2, Swift 6.3.3 Command Line Tools. App deployment target: macOS 15.
 
 Implementation baseline: `f468070`. This is a historical evidence record, not a claim that tests were rerun for later documentation-only commits. See [HANDOFF.md](HANDOFF.md) for current status and [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.

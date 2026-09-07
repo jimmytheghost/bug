@@ -17,4 +17,14 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Confirm Quit is unavailable during capture and export; stop before quitting.
 - [ ] Enable/disable Start on computer startup in the packaged app and verify macOS Login Items state.
 
+## Trim · v0.2.0
+
+- [ ] After Stop, confirm the new recording has a **Trim** button. Click it and check that it becomes **Undo**, with a shorter displayed duration and no preview approval dialog.
+- [ ] Record 8 seconds of silence, a known clip, then 10 seconds of silence. Trim with the default padding and confirm about 0.5 seconds remains at each end. Listen to the quiet beginning/fade and any internal pauses.
+- [ ] Preview and export both formats after Trim; confirm the boundaries match. Undo and confirm full-length playback/export returns, while earlier exported files stay unchanged.
+- [ ] Quit/reopen after Trim; confirm the edit and Undo persist. Rename and confirm the trim stays applied.
+- [ ] Change Trim padding, Undo, and Trim again. Check that existing edits do not change just from changing the setting.
+- [ ] Check all-silent, short, continuously audible, very quiet, and noisy recordings. No-op results should be clear; use Undo if detection cuts too much.
+- [ ] Include microphone speech before/after system audio and confirm it remains in the trimmed result. Test long-file processing and a metadata write failure without risking real recordings.
+
 Capture is never started automatically by app launch or by tests.

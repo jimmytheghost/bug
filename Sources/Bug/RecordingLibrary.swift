@@ -7,6 +7,8 @@ struct Recording: Identifiable, Codable, Equatable {
     let duration: TimeInterval
     let systemFilename: String
     let microphoneFilename: String?
+    var trimRange: AudioTrimRange? = nil
+    var playbackDuration: TimeInterval { trimRange?.duration ?? duration }
 }
 
 struct RecordingLibrary {
@@ -38,7 +40,8 @@ struct RecordingLibrary {
             let recording = try JSONDecoder().decode(Recording.self, from: Data(contentsOf: metadata))
             guard directory.lastPathComponent == recording.id.uuidString,
                   recording.systemFilename == URL(fileURLWithPath: recording.systemFilename).lastPathComponent,
-                  recording.microphoneFilename.map({ $0 == URL(fileURLWithPath: $0).lastPathComponent }) ?? true else {
+                  recording.microphoneFilename.map({ $0 == URL(fileURLWithPath: $0).lastPathComponent }) ?? true,
+                  recording.trimRange?.isValid ?? true else {
                 throw CocoaError(.fileReadCorruptFile)
             }
             return recording

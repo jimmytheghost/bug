@@ -25,7 +25,7 @@ final class BugAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let store else { return .terminateNow }
         guard store.canQuit else {
-            store.errorMessage = "Stop recording and wait for export to finish before quitting Bug."
+            store.errorMessage = "Stop recording and wait for Trim or export to finish before quitting Bug."
             return .terminateCancel
         }
         store.stopPlayback()

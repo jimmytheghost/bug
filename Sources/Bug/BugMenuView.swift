@@ -10,6 +10,11 @@ struct BugMenuView: View {
     @State private var deleting: Recording?
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
+    init(store: RecorderStore, showingSettings: Bool = false) {
+        _store = ObservedObject(wrappedValue: store)
+        _showingSettings = State(initialValue: showingSettings)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -65,7 +70,7 @@ struct BugMenuView: View {
 
     private var status: String {
         switch store.phase {
-        case .idle: return "Catch a little audio."
+        case .idle: return store.trimmingID == nil ? "Catch a little audio." : "Trimming recording…"
         case .starting: return "Starting audio capture…"
         case .recording: return "Recording \(store.includeMicrophone ? "system + microphone" : "system audio")"
         case .stopping: return "Finishing recording…"
@@ -111,7 +116,7 @@ struct BugMenuView: View {
                 .contentShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
-            .disabled(store.phase == .starting || store.phase == .stopping)
+            .disabled(store.phase == .starting || store.phase == .stopping || store.trimmingID != nil)
             .keyboardShortcut("r", modifiers: [.command])
         }
         .padding(12)
@@ -173,6 +178,7 @@ struct BugMenuView: View {
                     }
                 }
                 .frame(height: min(CGFloat(store.recordings.count) * 64, 220))
+                .id(store.recordings.first?.id)
             }
         }
     }
@@ -191,20 +197,39 @@ struct BugMenuView: View {
             .accessibilityLabel(store.playingID == recording.id ? "Stop playback" : "Play \(recording.title)")
             VStack(alignment: .leading, spacing: 4) {
                 Text(recording.title).font(.callout.weight(.medium)).lineLimit(1).help(recording.title)
-                Text("\(recording.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(RecorderStore.durationLabel(recording.duration))\(recording.microphoneFilename != nil ? " · Mic" : "")")
+                Text("\(RecorderStore.durationLabel(recording.playbackDuration))\(recording.trimRange != nil ? " · Trimmed" : "")\(recording.microphoneFilename != nil ? " · Mic" : "") · \(recording.createdAt.formatted(date: .abbreviated, time: .omitted))")
                     .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer(minLength: 0)
             if store.exportingID == recording.id { ProgressView().controlSize(.small) }
+            if store.trimmingID == recording.id {
+                ProgressView().controlSize(.small).accessibilityLabel("Trimming recording")
+            } else {
+                Button(recording.trimRange == nil ? "Trim" : "Undo") {
+                    if recording.trimRange != nil { store.undoTrim(recording) }
+                    else { Task { await store.trim(recording) } }
+                }
+                .font(.caption.weight(.medium))
+                .buttonStyle(.bordered).controlSize(.small)
+                .disabled(!store.canTrim)
+                .help(recording.trimRange == nil ? "Trim silence at the beginning and end" : "Undo Trim and restore the full recording")
+                .accessibilityLabel(recording.trimRange == nil ? "Trim \(recording.title)" : "Undo Trim for \(recording.title)")
+            }
             Menu {
                 Button("Export WAV · 24-bit") { Task { await store.export(recording, format: .wav) } }
-                    .disabled(store.exportingID != nil)
+                    .disabled(store.exportingID != nil || store.trimmingID != nil)
                 Button("Export MP3 · 320 kbps") { Task { await store.export(recording, format: .mp3) } }
-                    .disabled(store.exportingID != nil)
+                    .disabled(store.exportingID != nil || store.trimmingID != nil)
                 Divider()
+                Button(recording.trimRange == nil ? "Trim" : "Undo Trim") {
+                    if recording.trimRange != nil { store.undoTrim(recording) }
+                    else { Task { await store.trim(recording) } }
+                }
+                .disabled(!store.canTrim)
                 Button("Rename…") { newTitle = recording.title; renaming = recording }
+                    .disabled(store.trimmingID == recording.id)
                 Button("Move to Trash…", role: .destructive) { deleting = recording }
-                    .disabled(store.exportingID == recording.id)
+                    .disabled(store.exportingID == recording.id || store.trimmingID == recording.id)
             } label: { Image(systemName: "ellipsis").frame(width: 20, height: 28) }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .accessibilityLabel("Actions for \(recording.title)")
@@ -219,6 +244,19 @@ struct BugMenuView: View {
                 .font(.callout).toggleStyle(.switch).controlSize(.small)
                 .onAppear { loginEnabled = SMAppService.mainApp.status == .enabled }
             Divider()
+            VStack(alignment: .leading, spacing: 6) {
+                Picker("Trim padding", selection: $store.trimPadding) {
+                    Text("None").tag(0.0)
+                    Text("0.25 seconds").tag(0.25)
+                    Text("0.5 seconds").tag(0.5)
+                    Text("1 second").tag(1.0)
+                    Text("2 seconds").tag(2.0)
+                }
+                .font(.callout).disabled(store.trimmingID != nil)
+                Text("Keeps up to this much silence at each end. Pauses inside the recording stay intact. Undo restores the original.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Divider()
             VStack(alignment: .leading, spacing: 5) {
                 Text("Made to stay local.").font(.callout.weight(.medium))
                 Text("Audio stays on this Mac. WAV exports use 48 kHz, 24-bit stereo; MP3 uses 320 kbps.")
@@ -229,7 +267,7 @@ struct BugMenuView: View {
             Button("Audio recording permissions…") { store.openPermissions() }
             Button("Open recording library") { store.revealLibrary() }
             messages
-            Text("Bug 0.1.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.2.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

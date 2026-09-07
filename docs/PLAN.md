@@ -2,7 +2,7 @@
 
 ## Confirmed scope
 
-macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. No accounts, network service, or uploads.
+macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. No accounts, network service, or uploads.
 
 ## Architecture
 
@@ -17,6 +17,8 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] Run 21 synthetic tests, release build, and signature verification.
 - [x] Initialize Git and push `main` to the private GitHub repository.
 - [x] Publish repo-local agent handoff and canonical architecture documentation.
+- [x] Add Trim/Undo, configurable padding, persistent non-destructive bounds, and trimmed playback/exports (v0.2.0).
+- [x] Pass 33 synthetic tests including Trim and metadata compatibility.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
 
@@ -26,7 +28,7 @@ The original lead/capture/export subagent split is complete. Future work starts 
 
 CaptureEngine: `onLevel: ((Float) -> Void)?`, `onFailure: ((Error) -> Void)?`, `func start(directory: URL, includeMicrophone: Bool) async throws`, `func stop() async throws -> CaptureResult`. Callbacks may run off-main. `CaptureResult` exposes `systemURL: URL`, `microphoneURL: URL?`, `duration: TimeInterval`. Capture outputs timestamp-aligned tracks beginning at a common epoch; silence pads any delayed source. Failed captures preserve any recoverable disk data.
 
-AudioExporter: `enum AudioExportFormat: String, CaseIterable { case wav, mp3 }`; `func export(systemURL: URL, microphoneURL: URL?, to destination: URL, format: AudioExportFormat) async throws`. Offline stereo mix; WAV 48 kHz/24-bit PCM; MP3 320 kbps. No shell command interpolation; atomic destination replacement and source preservation. LAME 3.100 is built locally and bundled in `Contents/Frameworks/libmp3lame.dylib`.
+AudioExporter: `enum AudioExportFormat: String, CaseIterable { case wav, mp3 }`; `func export(systemURL: URL, microphoneURL: URL?, to destination: URL, format: AudioExportFormat, trimRange: AudioTrimRange? = nil) async throws`. Offline stereo mix; WAV 48 kHz/24-bit PCM; MP3 320 kbps. No shell command interpolation; atomic destination replacement and source preservation. LAME 3.100 is built locally and bundled in `Contents/Frameworks/libmp3lame.dylib`.
 
 ## Validation
 

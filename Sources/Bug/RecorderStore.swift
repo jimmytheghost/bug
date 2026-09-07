@@ -8,8 +8,11 @@ import UniformTypeIdentifiers
 final class RecorderStore: ObservableObject {
     enum Phase { case idle, starting, recording, stopping }
     @Published private(set) var phase: Phase = .idle
-    @Published var includeMicrophone = UserDefaults.standard.bool(forKey: "includeMicrophone") {
-        didSet { UserDefaults.standard.set(includeMicrophone, forKey: "includeMicrophone") }
+    @Published var includeMicrophone: Bool {
+        didSet { preferences.set(includeMicrophone, forKey: "includeMicrophone") }
+    }
+    @Published var trimPadding: Double {
+        didSet { preferences.set(trimPadding, forKey: "trimPadding") }
     }
     @Published private(set) var recordings: [Recording] = []
     @Published private(set) var levels: [Float] = Array(repeating: 0, count: 64)
@@ -19,6 +22,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var exportingID: UUID?
     @Published private(set) var playingID: UUID?
     @Published private(set) var preparingPlaybackID: UUID?
+    @Published private(set) var trimmingID: UUID?
 
     private var library: RecordingLibrary?
     private let engine = CaptureEngine()
@@ -32,13 +36,19 @@ final class RecorderStore: ObservableObject {
     private var latestLevel: Float = 0
     private var latestLevelAt = Date.distantPast
     private var failedWhileStarting = false
+    private let preferences: UserDefaults
 
-    var isBusy: Bool { phase != .idle }
+    var isBusy: Bool { phase != .idle || trimmingID != nil }
     var canQuit: Bool { !isBusy && exportingID == nil }
+    var canTrim: Bool { !isBusy && exportingID == nil }
 
-    init() {
+    init(library: RecordingLibrary? = nil, preferences: UserDefaults = .standard, startTimer: Bool = true) {
+        self.preferences = preferences
+        includeMicrophone = preferences.bool(forKey: "includeMicrophone")
+        let padding = preferences.object(forKey: "trimPadding") as? Double ?? 0.5
+        trimPadding = padding.isFinite && (0...2).contains(padding) ? padding : 0.5
         do {
-            let library = try RecordingLibrary()
+            let library = try library ?? RecordingLibrary()
             self.library = library
             recordings = try library.load()
         } catch { errorMessage = "Could not open the recording library: \(error.localizedDescription)" }
@@ -57,7 +67,7 @@ final class RecorderStore: ObservableObject {
                 if self.phase == .recording { await self.stop() }
             }
         }
-        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+        if startTimer { timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if self.phase == .recording, let startedAt = self.startedAt {
@@ -67,11 +77,13 @@ final class RecorderStore: ObservableObject {
                 }
                 if self.playingID != nil, self.player?.isPlaying != true { self.stopPlayback() }
             }
-        }
+        } }
     }
 
+    deinit { timer?.invalidate() }
+
     func start() async {
-        guard phase == .idle, let library else { return }
+        guard !isBusy, let library else { return }
         stopPlayback()
         phase = .starting
         failedWhileStarting = false
@@ -115,7 +127,7 @@ final class RecorderStore: ObservableObject {
     }
 
     func export(_ recording: Recording, format: AudioExportFormat) async {
-        guard exportingID == nil, let library else { return }
+        guard exportingID == nil, trimmingID == nil, let library else { return }
         exportingID = recording.id
         defer { exportingID = nil }
         let panel = NSSavePanel()
@@ -132,7 +144,7 @@ final class RecorderStore: ObservableObject {
         do {
             try await exporter.export(systemURL: library.url(for: recording),
                 microphoneURL: recording.microphoneFilename == nil ? nil : library.url(for: recording, microphone: true),
-                to: destination, format: format)
+                to: destination, format: format, trimRange: recording.trimRange)
             notice = "Exported \(destination.lastPathComponent)"
             NSWorkspace.shared.activateFileViewerSelecting([destination])
         } catch { errorMessage = "Export failed: \(error.localizedDescription) Your original recording is safe." }
@@ -148,7 +160,7 @@ final class RecorderStore: ObservableObject {
             do {
                 try await exporter.export(systemURL: library.url(for: recording),
                     microphoneURL: recording.microphoneFilename == nil ? nil : library.url(for: recording, microphone: true),
-                    to: url, format: .wav)
+                    to: url, format: .wav, trimRange: recording.trimRange)
                 guard !Task.isCancelled else { try? FileManager.default.removeItem(at: url); return }
                 let player = try AVAudioPlayer(contentsOf: url)
                 guard player.play() else { throw CocoaError(.fileReadUnknown) }
@@ -178,18 +190,58 @@ final class RecorderStore: ObservableObject {
 
     func rename(_ recording: Recording, to title: String) {
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !title.isEmpty, let library else { return }
-        var updated = recording
+        guard !title.isEmpty, trimmingID != recording.id, let library,
+              var updated = recordings.first(where: { $0.id == recording.id }) else { return }
         updated.title = title
         do { try library.save(updated); recordings = try library.load() }
         catch { errorMessage = "Could not rename recording: \(error.localizedDescription)" }
     }
 
     func delete(_ recording: Recording) {
-        guard exportingID != recording.id, let library else { return }
+        guard exportingID != recording.id, trimmingID != recording.id, let library else { return }
         if playingID == recording.id || preparingPlaybackID == recording.id { stopPlayback() }
         do { try library.delete(recording); recordings = try library.load() }
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
+    }
+
+    func trim(_ recording: Recording) async {
+        guard canTrim, let library,
+              let current = recordings.first(where: { $0.id == recording.id }), current.trimRange == nil else { return }
+        stopPlayback()
+        trimmingID = current.id
+        errorMessage = nil
+        notice = nil
+        defer { trimmingID = nil }
+        do {
+            let range = try await AudioTrimmer().analyze(systemURL: library.url(for: current),
+                microphoneURL: current.microphoneFilename == nil ? nil : library.url(for: current, microphone: true),
+                padding: trimPadding)
+            try Task.checkCancellation()
+            guard let range else {
+                notice = "No silence to trim, or no clear audio found. Recording unchanged."
+                return
+            }
+            var updated = current
+            updated.trimRange = range
+            try library.save(updated)
+            if let index = recordings.firstIndex(where: { $0.id == updated.id }) { recordings[index] = updated }
+            notice = "Trimmed. Undo restores the original recording."
+        } catch is CancellationError {
+            notice = "Trim cancelled. Recording unchanged."
+        } catch { errorMessage = "Trim failed: \(error.localizedDescription) Your original recording is safe." }
+    }
+
+    func undoTrim(_ recording: Recording) {
+        guard canTrim, let library,
+              var current = recordings.first(where: { $0.id == recording.id }), current.trimRange != nil else { return }
+        stopPlayback()
+        current.trimRange = nil
+        do {
+            try library.save(current)
+            if let index = recordings.firstIndex(where: { $0.id == current.id }) { recordings[index] = current }
+            errorMessage = nil
+            notice = "Trim undone. Original recording restored."
+        } catch { errorMessage = "Could not undo Trim: \(error.localizedDescription)" }
     }
 
     func revealLibrary() { if let library { NSWorkspace.shared.open(library.root) } }
