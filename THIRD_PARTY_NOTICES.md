@@ -15,7 +15,7 @@ Both downloads must match this digest before extraction or compilation. The buil
 archive remains unmodified; the shipped script reproduces the complete patch. `scripts/prepare-encoder.sh` contains the complete build recipe.
 No global installation, Package.swift dependency, or network access at runtime is needed.
 
-## Packaging handoff
+## Implemented packaging workflow
 
 1. Run `scripts/prepare-encoder.sh` for the host architecture, or
    `ARCHS="arm64 x86_64" scripts/prepare-encoder.sh` for a universal dylib.
@@ -33,9 +33,11 @@ No global installation, Package.swift dependency, or network access at runtime i
    Do not impose restrictions on LGPL-permitted replacement/debugging of the library.
 4. Sign the nested dylib, then the app, using the same identity (ad hoc for local use).
    Distributors who change signing/runtime policies must preserve LGPL replacement rights.
-5. Validate `swift build`, `swift test`, and `scripts/package-app.sh`, then confirm
-   the resulting app contains the library and notices. Packaging integration belongs
-   to the lead; the exporter does not modify the packaging script or package manifest.
+5. Validate `swift build`, `scripts/test.sh`, and `scripts/package-app.sh`, then confirm
+   the resulting app contains the library and notices. `scripts/package-app.sh` implements
+   this packaging flow. It prepares the encoder when the dylib is absent; it does not
+   verify a cached encoder architecture or repair a partially missing encoder directory.
+   Rerun `scripts/prepare-encoder.sh` when repairing or changing the target architecture.
 
 For unbundled development/tests construct `AudioExporter(encoderURL: URL(...))` with
 an absolute path to the prepared dylib. The default initializer loads only the app's
