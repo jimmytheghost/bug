@@ -1,5 +1,11 @@
 # Validation · 2026-09-07
 
+## Independent bulk confirmation · v0.4.3
+
+- User reported the previous SwiftUI confirmation disappearing with the menu and returning on reopen. Native UI behavior was not reproduced independently; replaced the popover-bound alert with standalone NSAlert ownership.
+- Debug build and **52 tests in 7 suites passed**. New parameterized test checks Cancel, confirm, duplicate suppression, and disposable Trash results without a menu view.
+- Staged release and signature verification passed at `dist/updates/v0.4.3/Bug.app`. No real recording was deleted or captured. Native dialog click/activation and capture permissions remain manual checks.
+
 ## Session cleanup · v0.4.2
 
 - Read-only directory/metadata inspection found 6 saved recording folders and 7 empty unfinished folders. No personal audio contents were read or deleted.

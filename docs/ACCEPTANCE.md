@@ -61,3 +61,8 @@ Capture is never started automatically by app launch or by tests.
 
 - [ ] Verify Delete All counts both finalized and empty/unfinished UUID session folders; unrelated files are excluded.
 - [ ] Confirm cleanup on disposable saved and unfinished sessions, including an empty-only library. Verify Trash recovery and preservation of sessions added after confirmation. This supersedes v0.4.1's unfinished-session preservation behavior.
+
+## Independent confirmation · v0.4.3
+
+- [ ] Open the latest staged build after quitting the old copy. Click Settings → Delete All; verify a standalone warning remains usable when the menu panel closes.
+- [ ] Cancel and reopen Settings: no deletion and no recurring warning. Repeat and confirm using disposable sessions: verify Trash movement and updated counts, then reopen and confirm the old warning does not return.

@@ -51,3 +51,5 @@ Automatic retention and low-disk warnings are follow-up candidates; Trash/size/r
 Distribution signing/notarization, automatic updates, accounts/cloud sync, per-app capture selection, pause/resume, and global shortcuts are not part of the confirmed first release. Do not silently expand into these features. Canonical implementation details are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - [x] v0.4.2: include empty/unfinished UUID session folders in confirmed bulk cleanup; 51 tests pass.
+
+- [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. Native interaction verification remains pending.

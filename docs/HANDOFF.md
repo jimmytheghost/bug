@@ -1,6 +1,6 @@
 # Agent handoff
 
-Last updated: **2026-09-07**. Version **0.4.2**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
+Last updated: **2026-09-07**. Version **0.4.3**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
 
 ## Where we left off
 
@@ -11,6 +11,14 @@ The user confirmed system audio with an optional microphone, a small local libra
 The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The design reference is the sibling `/Users/jimmytheghost/Dropbox/_Personal Projects/agent-dashboard` (Worklog). That app was inspected, not modified. Bug has no runtime dependency on that checkout.
 
 The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
+
+## Confirmation repair · v0.4.3
+
+The user reported that clicking Delete All dismissed the menu panel and reopening showed the same warning, with nothing deleted. The suspected failure is the SwiftUI alert lifecycle inside MenuBarExtra; no crash was independently established.
+
+Bulk confirmation now runs through store-owned `requestDeleteAll` and a standalone application-modal NSAlert. Presentation is deferred from the menu button callback; it no longer uses view-local optional alert state. Cancel is the default keyboard action; only the second button response proceeds to the captured IDs. Reentrant requests are ignored. This modal flow is only available while capture/Trim/export is idle.
+
+52 tests in 7 suites pass, including injected Cancel/confirm routing and duplicate request suppression using disposable sessions. These tests do not click the native dialog. User verification of the actual menu/window interaction remains pending. Latest build: `dist/updates/v0.4.3/Bug.app`. The running app and personal recordings were untouched.
 
 ## Session count fix · v0.4.2
 

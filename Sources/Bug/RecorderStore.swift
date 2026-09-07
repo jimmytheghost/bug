@@ -35,6 +35,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var preparingPlaybackID: UUID?
     @Published private(set) var trimmingID: UUID?
 
+    private var confirmingDeletion = false
     private var library: RecordingLibrary?
     private let trashRecording: ((UUID) throws -> Void)?
     private let engine: any AudioCapturing
@@ -261,6 +262,33 @@ final class RecorderStore: ObservableObject {
             notice = "Moved to Trash. Exported copies are unchanged."
         }
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
+    }
+
+    /// The application-modal dialog owns its lifetime independently of MenuBarExtra.
+    func requestDeleteAll(confirm: ((Int) -> Bool)? = nil) {
+        guard !confirmingDeletion else { return }
+        refreshLibrary()
+        guard canDeleteAll else { return }
+        let snapshot = librarySessionIDs
+        confirmingDeletion = true
+        defer { confirmingDeletion = false }
+        let approved: Bool
+        if let confirm {
+            approved = confirm(snapshot.count)
+        } else {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "Delete all recordings?"
+            alert.informativeText = "Move all \(snapshot.count) session folders to macOS Trash, including saved recordings and empty or unfinished sessions? Exported copies elsewhere are kept. You can recover recordings from Trash; empty it to free disk space."
+            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Delete All")
+            alert.buttons[0].keyEquivalent = "\r"
+            alert.buttons[1].keyEquivalent = ""
+            alert.window.level = .floating
+            NSApp.activate(ignoringOtherApps: true)
+            approved = alert.runModal() == .alertSecondButtonReturn
+        }
+        if approved { deleteSessions(snapshot) }
     }
 
     /// Only deletes the snapshot the user confirmed, never newly added recordings.

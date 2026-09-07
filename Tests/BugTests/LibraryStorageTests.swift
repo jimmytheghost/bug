@@ -122,4 +122,32 @@ struct LibraryStorageTests {
         #expect(trashed != nil)
     }
 
+    @MainActor @Test(arguments: [false, true])
+    func independentConfirmationRoutesCancelAndDelete(approved: Bool) throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let library = try RecordingLibrary(root: root)
+        _ = try library.createSession(id: UUID())
+        let suite = "BugConfirmationTests-\(UUID())"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+        var trashed: URL?
+        defer { if let trashed { try? FileManager.default.removeItem(at: trashed) } }
+        let store = RecorderStore(library: library, preferences: preferences, startTimer: false,
+                                  trashRecording: { id in trashed = try library.deleteSession(id) })
+        var confirmationCount = 0
+        store.requestDeleteAll { count in
+            confirmationCount += 1
+            #expect(count == 1)
+            store.requestDeleteAll { _ in
+                Issue.record("Duplicate confirmation must be suppressed")
+                return true
+            }
+            return approved
+        }
+        #expect(confirmationCount == 1)
+        #expect(store.librarySessionIDs.isEmpty == approved)
+        #expect((trashed != nil) == approved)
+    }
+
 }
