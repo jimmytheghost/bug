@@ -52,7 +52,28 @@ struct RecordingLibrary {
         directory(for: recording.id).appendingPathComponent(microphone ? (recording.microphoneFilename ?? recording.systemFilename) : recording.systemFilename)
     }
 
-    func delete(_ recording: Recording) throws {
-        try FileManager.default.trashItem(at: directory(for: recording.id), resultingItemURL: nil)
+    /// Logical file bytes, including metadata and unfinished sessions; never follows symlinks.
+    func storageBytes(at directory: URL) throws -> Int64 {
+        let keys: [URLResourceKey] = [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
+        var traversalError: Error?
+        guard let enumerator = FileManager.default.enumerator(
+            at: directory, includingPropertiesForKeys: keys, options: [],
+            errorHandler: { _, error in traversalError = error; return false }
+        ) else { throw CocoaError(.fileReadUnknown) }
+        var total: Int64 = 0
+        for case let url as URL in enumerator {
+            let values = try url.resourceValues(forKeys: Set(keys))
+            if values.isSymbolicLink == true { enumerator.skipDescendants(); continue }
+            if values.isRegularFile == true { total += Int64(values.fileSize ?? 0) }
+        }
+        if let traversalError { throw traversalError }
+        return total
+    }
+
+    @discardableResult
+    func delete(_ recording: Recording) throws -> URL? {
+        var destination: NSURL?
+        try FileManager.default.trashItem(at: directory(for: recording.id), resultingItemURL: &destination)
+        return destination as URL?
     }
 }

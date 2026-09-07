@@ -22,6 +22,9 @@ final class RecorderStore: ObservableObject {
         }
     }
     @Published private(set) var recordings: [Recording] = []
+    @Published private(set) var recordingBytes: [UUID: Int64] = [:]
+    @Published private(set) var libraryBytes: Int64?
+
     @Published private(set) var levels: [Float] = Array(repeating: 0, count: 64)
     @Published private(set) var elapsed: TimeInterval = 0
     @Published var errorMessage: String?
@@ -67,7 +70,7 @@ final class RecorderStore: ObservableObject {
         do {
             let library = try library ?? RecordingLibrary()
             self.library = library
-            recordings = try library.load()
+            try reloadLibrary()
         } catch { errorMessage = "Could not open the recording library: \(error.localizedDescription)" }
         engine.onLevel = { [weak self] level in
             Task { @MainActor [weak self] in
@@ -136,7 +139,7 @@ final class RecorderStore: ObservableObject {
                 duration: result.duration, systemFilename: result.systemURL.lastPathComponent,
                 microphoneFilename: result.microphoneURL?.lastPathComponent)
             try library.save(recording)
-            recordings = try library.load()
+            try reloadLibrary()
             elapsed = result.duration
             notice = "Saved to your library."
         } catch {
@@ -240,14 +243,18 @@ final class RecorderStore: ObservableObject {
         guard !title.isEmpty, trimmingID != recording.id, let library,
               var updated = recordings.first(where: { $0.id == recording.id }) else { return }
         updated.title = title
-        do { try library.save(updated); recordings = try library.load() }
+        do { try library.save(updated); try reloadLibrary() }
         catch { errorMessage = "Could not rename recording: \(error.localizedDescription)" }
     }
 
     func delete(_ recording: Recording) {
         guard exportingID != recording.id, trimmingID != recording.id, let library else { return }
         if playingID == recording.id || preparingPlaybackID == recording.id { stopPlayback() }
-        do { try library.delete(recording); recordings = try library.load() }
+        do {
+            try library.delete(recording)
+            try reloadLibrary()
+            notice = "Moved to Trash. Exported copies are unchanged."
+        }
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
     }
 
@@ -289,6 +296,35 @@ final class RecorderStore: ObservableObject {
             errorMessage = nil
             notice = "Trim undone. Original recording restored."
         } catch { errorMessage = "Could not undo Trim: \(error.localizedDescription)" }
+    }
+
+    /// Reads metadata and file sizes only; never reads audio samples.
+    private func reloadLibrary() throws {
+        guard let library else { return }
+        let current = try library.load()
+        if let id = playingID ?? preparingPlaybackID, !current.contains(where: { $0.id == id }) {
+            stopPlayback()
+        }
+        recordings = current
+        recordingBytes = Dictionary(uniqueKeysWithValues: current.compactMap { recording in
+            guard let bytes = try? library.storageBytes(at: library.directory(for: recording.id)) else { return nil }
+            return (recording.id, bytes)
+        })
+        libraryBytes = try? library.storageBytes(at: library.root)
+    }
+
+    func refreshLibrary() {
+        do { try reloadLibrary() }
+        catch { errorMessage = "Could not refresh the recording library: \(error.localizedDescription)" }
+    }
+
+    func sizeLabel(for recording: Recording) -> String {
+        Self.sizeLabel(recordingBytes[recording.id])
+    }
+
+    static func sizeLabel(_ bytes: Int64?) -> String {
+        guard let bytes else { return "Size unavailable" }
+        return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 
     func revealLibrary() { if let library { NSWorkspace.shared.open(library.root) } }

@@ -1,5 +1,13 @@
 # Validation · 2026-09-07
 
+## Library storage · v0.4.0
+
+- Debug build and **49 executed tests in 7 suites passed** on the existing Apple Silicon host.
+- Three new tests cover combined system/microphone/metadata sizes, unfinished sessions, skipped symlinks, Finder-style removal/restoration and source size changes, and actual macOS Trash/restore with exported-copy preservation. Only disposable synthetic fixture files were touched; no user recording was read or deleted.
+- Offscreen render of the real row was inspected: duration/size, count/total, Trim, Trash, and menu fit the 360-point panel. Native confirmation interaction and automatic refresh timing in the real menu bar remain manual acceptance.
+- Release package staged at `dist/updates/v0.4.0/Bug.app`; installed/running `dist/Bug.app` was preserved. Signature verification passes with the ad-hoc warning. This does not verify capture authorization or stable permission persistence.
+- No live audio was recorded. Bulk cleanup, automatic retention, and disk-space warnings remain unimplemented.
+
 ## Permission recovery and packaging follow-up
 
 - The screenshot showed permission enabled while capture failed. Read-only `tccd` logs explicitly reported mismatched code requirements: the saved v0.1.0 hash versus the running v0.3.0 hash. This confirms a signing-identity mismatch, not an inference from the toggle alone.

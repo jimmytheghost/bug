@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.3.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.4.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The current implementation passed 46 synthetic tests, including Trim and silence reminders, and release/signature checks. The user reported a forgotten recording that produced over 1 GB of silence. Live signal quality, permission flows, and the new reminder's real-device behavior still need acceptance testing.
+The current implementation passed 49 synthetic tests, including Trim and silence reminders, and release/signature checks. The user reported a forgotten recording that produced over 1 GB of silence. Live signal quality, permission flows, and the new reminder's real-device behavior still need acceptance testing.
 
 ## What it does
 
@@ -40,9 +40,19 @@ Use the packaged app for recording: its bundle supplies macOS microphone usage t
 
 Click the ladybug in the menu bar, optionally enable **Include microphone**, then click **Record**. On first use, allow Bug in macOS **Privacy & Security → Screen & System Audio Recording**, and allow the microphone if requested. macOS may require restarting Bug after permission changes. Click **Stop recording** to finalize the recording and add it to the library.
 
-Use the recording's **…** menu to export WAV or MP3, rename it, or move its source files to Trash. The play button previews the combined audio; it prepares a temporary WAV first, so long recordings may take time. Original recordings stay in the library after export.
+Use the visible **trash can** beside a recording to move its source folder to macOS Trash after confirmation. You can also use the **…** menu to export WAV or MP3, rename it, or move it to Trash. The play button previews the combined audio; it prepares a temporary WAV first, so long recordings may take time. Original recordings stay in the library after export.
 
 Recordings live in `~/Library/Application Support/Bug/Recordings/`. The **Library folder** button opens this directory. Each session has lossless source CAF tracks and JSON metadata. WAV/MP3 are created only on export. Audio is written incrementally; uncompressed stereo sources use roughly 1.4 GB per hour, plus microphone audio. The library does not automatically delete recordings. Interrupted sessions without finalized JSON metadata remain on disk but are not automatically imported into the library; see [known gaps](docs/HANDOFF.md#known-gaps-and-operational-caveats).
+
+## Library storage
+
+Each row shows duration and file size; hover over the title for the recording date. The library heading shows the recording count and total file sizes in the Library folder. This includes metadata and unfinished sessions, so the total may exceed the sizes of the playable entries. Sizes are logical file bytes, not an estimate of reclaimable disk space.
+
+The list refreshes when the panel appears, when Bug becomes active, and every five seconds while the panel is present. Recordings moved out through Finder disappear on refresh; restoring their original UUID folders brings them back. Only Bug recordings with valid metadata appear as rows, not arbitrary audio dropped into the folder. A corrupt metadata file still causes a load error.
+
+Trash is recoverable, and exported copies outside the source folder stay untouched. **Empty macOS Trash to reclaim disk space.** There is no automatic deletion. Trim keeps the original sources for Undo and therefore does not reduce library storage. Bulk clearing and low-disk warnings remain future work.
+
+The v0.4.0 update is staged at `dist/updates/v0.4.0/Bug.app`; the existing `dist/Bug.app` was left intact because Bug was running. Stop any capture, quit the old copy, then open the staged update. This ad-hoc build may require capture permission reapproval; see [recovery instructions](docs/PERMISSIONS.md).
 
 ## Silence reminder
 

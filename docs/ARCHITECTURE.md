@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-07** against the v0.3.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-07** against the v0.4.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -24,7 +24,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `AudioTrimmer.swift` | Conservative boundary scan and persistent 48 kHz trim range |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.3.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -63,6 +63,14 @@ Each source's timestamps are relative to one host-clock epoch. Writers insert le
 `Recording` has `id: UUID`, `createdAt: Date`, `title: String`, `duration: TimeInterval`, `systemFilename: String`, and `microphoneFilename: String?`. The default `JSONEncoder`/`JSONDecoder` strategies encode dates as seconds relative to Foundation's reference date (2001-01-01), not ISO strings or Unix timestamps. `trimRange: AudioTrimRange?` is an optional backward-compatible edit field; older metadata without it decodes as untrimmed. `duration` remains the full original duration, and `playbackDuration` reflects the trim when present. Metadata has no schema version or migration layer. Preserve compatibility or introduce an explicit migration when changing it.
 
 JSON writes are atomic. Load orders recordings newest first, skips directories without metadata, and rejects mismatched directory/recording IDs or source filenames containing paths. An invalid metadata entry currently throws for the entire load. Rename only rewrites metadata. Delete moves the whole source directory to Trash; exported copies remain elsewhere. Capture storage and exported destinations are separate; there is no automatic retention.
+
+## Library storage and refresh
+
+v0.4.0 adds a visible Trash action with the existing recoverable confirmation. Store deletion stops playback/preparation for that entry and refuses deletion during its export or Trim. The whole UUID directory goes to macOS Trash; external exports are unaffected. Emptying Trash is the user's separate action.
+
+`RecordingLibrary.storageBytes(at:)` enumerates regular files using file-size metadata, includes hidden files and unfinished sessions, and skips symlinks. It does not read audio content or persist a size in recording JSON. Per-entry totals count the whole UUID directory; the header counts the entire root. Logical bytes can differ from allocated/reclaimable disk space. Unavailable size reads display “Size unavailable.”
+
+The store reloads metadata and sizes at initialization, after Stop/rename/delete, and through `refreshLibrary()`. The view refreshes on appearance using a cancellable task, every five seconds while that task is active, and on application activation. Removed preview entries stop playback/preparation. All refresh scans run synchronously on the main actor and read metadata only; very large numbers of directories may warrant background scanning later. A malformed metadata entry still fails the complete load; files without metadata remain off-list but count toward total size.
 
 ## Export contract
 

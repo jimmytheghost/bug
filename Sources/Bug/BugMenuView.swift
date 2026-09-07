@@ -33,6 +33,16 @@ struct BugMenuView: View {
         .frame(width: 360)
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.mint)
+        .task {
+            while !Task.isCancelled {
+                store.refreshLibrary()
+                do { try await Task.sleep(for: .seconds(5)) }
+                catch { return }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            store.refreshLibrary()
+        }
         .alert("Rename recording", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
             TextField("Name", text: $newTitle)
             Button("Cancel", role: .cancel) { renaming = nil }
@@ -41,7 +51,7 @@ struct BugMenuView: View {
         .alert("Move recording to Trash?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button("Cancel", role: .cancel) { deleting = nil }
             Button("Move to Trash", role: .destructive) { if let deleting { store.delete(deleting) }; deleting = nil }
-        } message: { Text("You can recover the original audio from the Trash. Exported copies stay where you saved them.") }
+        } message: { Text("You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash.") }
     }
 
     private var header: some View {
@@ -158,7 +168,8 @@ struct BugMenuView: View {
             HStack {
                 Text("RECORDINGS").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                 Spacer()
-                Text("\(store.recordings.count)").font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
+                Text("\(store.recordings.count) · \(RecorderStore.sizeLabel(store.libraryBytes))").font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
+                    .help("Total file sizes in the Library folder, including unfinished sessions. Trim keeps the original files.")
             }
             if store.recordings.isEmpty {
                 VStack(spacing: 6) {
@@ -196,8 +207,8 @@ struct BugMenuView: View {
             .buttonStyle(.plain).disabled(store.isBusy)
             .accessibilityLabel(store.playingID == recording.id ? "Stop playback" : "Play \(recording.title)")
             VStack(alignment: .leading, spacing: 4) {
-                Text(recording.title).font(.callout.weight(.medium)).lineLimit(1).help(recording.title)
-                Text("\(RecorderStore.durationLabel(recording.playbackDuration))\(recording.trimRange != nil ? " · Trimmed" : "")\(recording.microphoneFilename != nil ? " · Mic" : "") · \(recording.createdAt.formatted(date: .abbreviated, time: .omitted))")
+                Text(recording.title).font(.callout.weight(.medium)).lineLimit(1).help("\(recording.title) · \(recording.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                Text("\(RecorderStore.durationLabel(recording.playbackDuration)) · \(store.sizeLabel(for: recording))\(recording.trimRange != nil ? " · Trimmed" : "")\(recording.microphoneFilename != nil ? " · Mic" : "")")
                     .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -215,6 +226,13 @@ struct BugMenuView: View {
                 .help(recording.trimRange == nil ? "Trim silence at the beginning and end" : "Undo Trim and restore the full recording")
                 .accessibilityLabel(recording.trimRange == nil ? "Trim \(recording.title)" : "Undo Trim for \(recording.title)")
             }
+            Button { deleting = recording } label: {
+                Image(systemName: "trash").frame(width: 22, height: 28).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).foregroundStyle(.secondary)
+            .disabled(store.exportingID == recording.id || store.trimmingID == recording.id)
+            .help("Move to Trash")
+            .accessibilityLabel("Move \(recording.title) to Trash")
             Menu {
                 Button("Export WAV · 24-bit") { Task { await store.export(recording, format: .wav) } }
                     .disabled(store.exportingID != nil || store.trimmingID != nil)
@@ -264,7 +282,7 @@ struct BugMenuView: View {
                     Text("2 seconds").tag(2.0)
                 }
                 .font(.callout).disabled(store.trimmingID != nil)
-                Text("Keeps up to this much silence at each end. Pauses inside the recording stay intact. Undo restores the original.")
+                Text("Keeps up to this much silence at each end. Pauses inside the recording stay intact. Undo restores the original. Trim does not reduce library storage.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Divider()
@@ -278,7 +296,7 @@ struct BugMenuView: View {
             Button("Audio recording permissions…") { store.openPermissions() }
             Button("Open recording library") { store.revealLibrary() }
             messages
-            Text("Bug 0.3.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.4.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

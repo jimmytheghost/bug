@@ -41,3 +41,12 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Check reminder visibility and button focus on another Space and over a full-screen app. Confirm recording remains responsive while the popup is open.
 
 Capture is never started automatically by app launch or by tests.
+
+## Library storage · v0.4.0
+
+- [ ] Stop any active capture, quit the old Bug, and open `dist/updates/v0.4.0/Bug.app`. Reapprove capture if needed.
+- [ ] Verify visible Trash buttons on short/long titles and trimmed/microphone recordings; cancel once, then confirm deletion on a disposable recording.
+- [ ] Confirm the row and totals update, exported copies outside its folder stay intact, and the source folder can be restored from macOS Trash.
+- [ ] Move a disposable UUID recording folder out in Finder and restore it. Verify refresh with the panel open (within about five seconds), after reopening, and when returning from Finder.
+- [ ] Check row sizes and the full folder total, including an unfinished session. Verify Trim changes duration without reducing source storage.
+- [ ] During playback, remove the entry through Finder and verify refresh stops playback. Verify Trash is disabled for the entry undergoing Trim/export.

@@ -1,6 +1,6 @@
 # Agent handoff
 
-Last updated: **2026-09-07**. Version **0.3.0**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
+Last updated: **2026-09-07**. Version **0.4.0**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
 
 ## Where we left off
 
@@ -12,6 +12,14 @@ The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Person
 
 The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
 
+## Library update · v0.4.0
+
+The pre-change checkpoint `79c4c17` was confirmed clean and pushed before this pass, as the user requested. Continue committing and pushing each completed pass.
+
+Implemented visible row Trash buttons using the existing confirmation, per-recording file sizes, a full-folder total, and refresh on panel appearance/application activation plus five-second refresh while visible. Hover over the title for the date. Trim storage behavior and the need to empty Trash to free space are explicit. No automatic deletion, bulk clear, or low-space warning was added.
+
+49 tests in 7 suites pass, including synthetic file sizing, Finder-style removal/restoration, and actual macOS Trash/restore with an isolated disposable fixture. Offscreen layout was inspected. The new release is staged at `dist/updates/v0.4.0/Bug.app`; the running `dist/Bug.app` was not replaced or terminated. User quit/open of the staged update and interactive acceptance remain pending. Capture permission reapproval may be needed because no valid certificate identity is installed.
+
 ## Current permission incident
 
 The user reported denied capture with Bug enabled in System Settings. macOS logs confirmed the saved v0.1.0 ad-hoc requirement did not match the running v0.3.0 binary. Bug's ScreenCapture grant was reset successfully; **user quit/reopen, reapproval, and a successful recording remain pending**. The installed bundle and recordings were untouched. See [PERMISSIONS.md](PERMISSIONS.md) for exact recovery steps.
@@ -22,7 +30,7 @@ Packaging now accepts `BUG_SIGNING_IDENTITY`, signs both encoder and app, and ve
 
 - Apple Silicon, macOS 26.6.2, Swift 6.3.3 Command Line Tools.
 - Debug build, release bundle, and ad-hoc signature verification passed.
-- 46 executed Swift Testing tests in 6 suites passed, including real MP3 encode/decode, Trim bounds, persistent Undo, source preservation, and silence reminder timing/actions using synthetic audio.
+- 49 executed Swift Testing tests in 7 suites passed, including real MP3 encode/decode, Trim bounds, persistent Undo, source preservation, and silence reminder timing/actions using synthetic audio.
 - Offscreen AppKit/SwiftUI layout inspected; desktop automation timed out.
 - Development tests captured no live user audio. The user reported a long accidental silent recording; live signal quality, permission flows, FaceTime, device changes, sleep, reminder window behavior, and launch at login still need acceptance checks.
 
