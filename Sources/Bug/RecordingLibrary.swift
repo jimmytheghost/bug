@@ -63,7 +63,7 @@ struct RecordingLibrary {
         var total: Int64 = 0
         for case let url as URL in enumerator {
             let values = try url.resourceValues(forKeys: Set(keys))
-            if values.isSymbolicLink == true { enumerator.skipDescendants(); continue }
+            if values.isSymbolicLink == true { continue }
             if values.isRegularFile == true { total += Int64(values.fileSize ?? 0) }
         }
         if let traversalError { throw traversalError }

@@ -68,4 +68,36 @@ struct LibraryStorageTests {
         try FileManager.default.moveItem(at: trashed, to: library.directory(for: recording.id))
         #expect(try library.load() == [recording])
     }
+    @MainActor @Test(arguments: [false, true])
+    func bulkDeletionUsesConfirmedSnapshotAndPreservesFailures(failOne: Bool) throws {
+        let parent = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: parent) }
+        let library = try RecordingLibrary(root: parent.appendingPathComponent("library"))
+        let first = try fixture(library)
+        let second = try fixture(library)
+        let unfinished = try library.createSession(id: UUID())
+        let suite = "BugBulkTests-\(UUID())"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+        var trashed: [URL] = []
+        defer { for url in trashed { try? FileManager.default.removeItem(at: url) } }
+        let store = RecorderStore(library: library, preferences: preferences, startTimer: false,
+                                  trashRecording: { recording in
+            if failOne && recording.id == first.id { throw CocoaError(.fileWriteNoPermission) }
+            if let url = try library.delete(recording) { trashed.append(url) }
+        })
+        let confirmed = store.recordings
+        #expect(confirmed.count == 2)
+        #expect(try library.load().count == 2) // Preparing confirmation does not delete.
+        let addedLater = try fixture(library)
+        store.deleteAll(confirmed)
+        #expect(store.recordings.contains(where: { $0.id == addedLater.id }))
+        #expect(!store.recordings.contains(where: { $0.id == second.id }))
+        #expect(store.recordings.contains(where: { $0.id == first.id }) == failOne)
+        #expect((store.errorMessage != nil) == failOne)
+        #expect(FileManager.default.fileExists(atPath: unfinished.path))
+        #expect(store.libraryBytes == (try library.storageBytes(at: library.root)))
+        #expect(trashed.count == (failOne ? 1 : 2))
+    }
+
 }

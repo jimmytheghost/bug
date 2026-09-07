@@ -1,5 +1,12 @@
 # Validation · 2026-09-07
 
+## Delete All · v0.4.1
+
+- Debug build and **50 tests in 7 suites passed**. The new parameterized bulk-deletion test runs both success and injected partial failure, using actual macOS Trash on disposable synthetic folders. It verifies confirmed scope, later additions surviving, unfinished-session preservation, totals refresh, and error reporting.
+- The first run exposed an order-dependent preexisting storage traversal failure. Removing skipDescendants on a symlink fixed it; the complete suite then passed.
+- Offscreen Settings render inspected with Delete All visible. Actual confirmation Cancel/confirm and disabled-state interaction remain hands-on checks.
+- Release packaging and strict/deep signature verification passed at `dist/updates/v0.4.1/Bug.app`. No running app was replaced, no personal recordings were touched, and capture permission persistence remains unverified.
+
 ## Library storage · v0.4.0
 
 - Debug build and **49 executed tests in 7 suites passed** on the existing Apple Silicon host.

@@ -8,6 +8,7 @@ struct BugMenuView: View {
     @State private var renaming: Recording?
     @State private var newTitle = ""
     @State private var deleting: Recording?
+    @State private var deletingAll: [Recording]?
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
     init(store: RecorderStore, showingSettings: Bool = false) {
@@ -52,6 +53,17 @@ struct BugMenuView: View {
             Button("Cancel", role: .cancel) { deleting = nil }
             Button("Move to Trash", role: .destructive) { if let deleting { store.delete(deleting) }; deleting = nil }
         } message: { Text("You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash.") }
+        .alert("Delete all recordings?", isPresented: Binding(
+            get: { deletingAll != nil }, set: { if !$0 { deletingAll = nil } }
+        )) {
+            Button("Cancel", role: .cancel) { deletingAll = nil }
+            Button("Delete All", role: .destructive) {
+                if let deletingAll { store.deleteAll(deletingAll) }
+                deletingAll = nil
+            }
+        } message: {
+            Text("Move all \(deletingAll?.count ?? 0) saved recordings to macOS Trash? Exported copies elsewhere and unfinished sessions are kept. You can recover recordings from Trash; empty it to free disk space.")
+        }
     }
 
     private var header: some View {
@@ -295,8 +307,15 @@ struct BugMenuView: View {
             }
             Button("Audio recording permissions…") { store.openPermissions() }
             Button("Open recording library") { store.revealLibrary() }
+            Button("Delete All", role: .destructive) {
+                store.refreshLibrary()
+                if store.canDeleteAll { deletingAll = store.recordings }
+            }
+            .disabled(!store.canDeleteAll)
+            .help("Move all saved recordings to Trash")
+
             messages
-            Text("Bug 0.4.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.4.1 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

@@ -50,3 +50,9 @@ Capture is never started automatically by app launch or by tests.
 - [ ] Move a disposable UUID recording folder out in Finder and restore it. Verify refresh with the panel open (within about five seconds), after reopening, and when returning from Finder.
 - [ ] Check row sizes and the full folder total, including an unfinished session. Verify Trim changes duration without reducing source storage.
 - [ ] During playback, remove the entry through Finder and verify refresh stops playback. Verify Trash is disabled for the entry undergoing Trim/export.
+
+## Delete All · v0.4.1
+
+- [ ] With disposable recordings, click Settings → Delete All. Verify the count and warning, then Cancel and confirm nothing changes.
+- [ ] Confirm Delete All. Verify list/totals update, sources are recoverable from Trash, and exports outside the source folders and unfinished sessions remain.
+- [ ] Check disabled state for empty library, recording, Trim, and export. Verify bulk deletion stops preview playback.

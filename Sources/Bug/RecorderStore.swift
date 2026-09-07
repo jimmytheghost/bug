@@ -35,6 +35,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var trimmingID: UUID?
 
     private var library: RecordingLibrary?
+    private let trashRecording: ((Recording) throws -> Void)?
     private let engine: any AudioCapturing
     private let exporter = AudioExporter()
     private var sessionID: UUID?
@@ -52,12 +53,15 @@ final class RecorderStore: ObservableObject {
     private var silenceMonitor = SilenceMonitor()
 
     var isBusy: Bool { phase != .idle || trimmingID != nil }
+    var canDeleteAll: Bool { !isBusy && exportingID == nil && !recordings.isEmpty }
     var canQuit: Bool { !isBusy && exportingID == nil }
     var canTrim: Bool { !isBusy && exportingID == nil }
 
     init(library: RecordingLibrary? = nil, preferences: UserDefaults = .standard, startTimer: Bool = true,
          engine: any AudioCapturing = CaptureEngine(), reminderPresenter: (any SilenceReminderPresenting)? = nil,
+         trashRecording: ((Recording) throws -> Void)? = nil,
          monotonicTime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+        self.trashRecording = trashRecording
         self.preferences = preferences
         self.engine = engine
         self.reminderPresenter = reminderPresenter ?? SilenceReminderPresenter()
@@ -256,6 +260,31 @@ final class RecorderStore: ObservableObject {
             notice = "Moved to Trash. Exported copies are unchanged."
         }
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
+    }
+
+    /// Only deletes the snapshot the user confirmed, never newly added recordings.
+    func deleteAll(_ confirmed: [Recording]) {
+        guard canDeleteAll, let library else { return }
+        stopPlayback()
+        errorMessage = nil
+        notice = nil
+        var moved = 0
+        var failures = 0
+        for recording in confirmed {
+            guard FileManager.default.fileExists(atPath: library.directory(for: recording.id).path) else { continue }
+            do {
+                if let trashRecording { try trashRecording(recording) }
+                else { try library.delete(recording) }
+                moved += 1
+            } catch { failures += 1 }
+        }
+        do { try reloadLibrary() }
+        catch { errorMessage = "Could not refresh the library after deletion: \(error.localizedDescription)" }
+        if failures > 0 {
+            errorMessage = "Moved \(moved) recordings to Trash. Could not move \(failures); they remain in the Library folder."
+        } else {
+            notice = "Moved \(moved) recordings to Trash. Exported copies are unchanged."
+        }
     }
 
     func trim(_ recording: Recording) async {

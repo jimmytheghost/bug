@@ -22,6 +22,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] Add the independent silence reminder panel and persistent gear setting (v0.3.0).
 - [x] Pass 46 synthetic tests including reminder timing and store action/lifecycle tests.
 - [x] Add visible Trash controls, file and library sizes, and panel refresh (v0.4.0); pass 49 tests in 7 suites.
+- [x] Add Settings Delete All with confirmation, snapshot scope, and partial-failure handling (v0.4.1); pass 50 tests in 7 suites.
 - [ ] Complete the current [permission recovery](PERMISSIONS.md), configure an existing stable signing identity, and verify grant persistence across updates. Scoped reset and packaging support are complete; certificate setup and user reapproval are pending.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
@@ -44,7 +45,7 @@ First recording requires macOS permission. Protected sources may prevent capture
 
 ## Scope deferred
 
-Bulk library clearing, automatic retention, and low-disk warnings are follow-up candidates; this pass implements the agreed initial Trash/size/refresh scope.
+Automatic retention and low-disk warnings are follow-up candidates; Trash/size/refresh shipped in v0.4.0; confirmed bulk deletion shipped in v0.4.1.
 
 
 Distribution signing/notarization, automatic updates, accounts/cloud sync, per-app capture selection, pause/resume, and global shortcuts are not part of the confirmed first release. Do not silently expand into these features. Canonical implementation details are in [ARCHITECTURE.md](ARCHITECTURE.md).
