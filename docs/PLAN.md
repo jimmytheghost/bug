@@ -53,3 +53,5 @@ Distribution signing/notarization, automatic updates, accounts/cloud sync, per-a
 - [x] v0.4.2: include empty/unfinished UUID session folders in confirmed bulk cleanup; 51 tests pass.
 
 - [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. Native interaction verification remains pending.
+
+- [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.

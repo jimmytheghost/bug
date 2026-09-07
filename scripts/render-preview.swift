@@ -27,7 +27,11 @@ struct BugPreview {
         if CommandLine.arguments.contains("--silence-reminder") {
             content = AnyView(SilenceReminderView(delay: .thirtySeconds, keepRecording: {}, stopRecording: {}))
         } else {
-            content = AnyView(BugMenuView(store: RecorderStore(library: library, preferences: preferences, startTimer: false),
+            let store = RecorderStore(library: library, preferences: preferences, startTimer: false)
+            if CommandLine.arguments.contains("--deleted-fixture") {
+                store.notice = "Moved 13 session folders to Trash. Exported copies are unchanged."
+            }
+            content = AnyView(BugMenuView(store: store,
                                            showingSettings: CommandLine.arguments.contains("--settings")))
         }
         let view = content.environment(\.colorScheme, .dark)

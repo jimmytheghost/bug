@@ -66,3 +66,8 @@ Capture is never started automatically by app launch or by tests.
 
 - [ ] Open the latest staged build after quitting the old copy. Click Settings → Delete All; verify a standalone warning remains usable when the menu panel closes.
 - [ ] Cancel and reopen Settings: no deletion and no recurring warning. Repeat and confirm using disposable sessions: verify Trash movement and updated counts, then reopen and confirm the old warning does not return.
+
+## Footer · v0.4.4
+
+- [ ] Confirm footer padding after Delete All with the success notice visible, after dismissing the notice, with saved recordings, and in Settings. Verify the panel resizes without clipping its bottom controls.
+- User reported v0.4.3 Delete All works and supplied a screenshot showing all 13 sessions moved and zero recordings remaining. This confirms that deletion flow, not every recovery/cancellation scenario.

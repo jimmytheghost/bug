@@ -31,6 +31,7 @@ struct BugMenuView: View {
             footer
         }
         .frame(width: 360)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.mint)
         .task {
@@ -178,6 +179,7 @@ struct BugMenuView: View {
                     Text("Ready when you are.").font(.callout.weight(.medium))
                     Text("Record audio from your Mac.\nYour recordings will appear here.")
                         .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 18)
             } else {
@@ -306,7 +308,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.4.3 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.4.4 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }
@@ -319,7 +321,12 @@ struct BugMenuView: View {
                 .disabled(!store.canQuit)
                 .keyboardShortcut("q", modifiers: [.command])
         }
-        .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary).padding(14)
+        .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
+        .frame(minHeight: 20)
+        .padding(.horizontal, 14)
+        .padding(.top, 14)
+        .padding(.bottom, 22)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func updateLoginItem(_ enabled: Bool) {

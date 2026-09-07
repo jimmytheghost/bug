@@ -4,7 +4,7 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.4.3**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.4.4**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
@@ -52,7 +52,7 @@ The list refreshes when the panel appears, when Bug becomes active, and every fi
 
 Trash is recoverable, and exported copies outside the source folder stay untouched. **Empty macOS Trash to reclaim disk space.** There is no automatic deletion. Trim keeps the original sources for Undo and therefore does not reduce library storage. **Delete All** in Settings opens an independent macOS warning dialog for confirmation before moving the displayed snapshot of session folders, including empty and unfinished sessions to Trash. It is disabled during recording, Trim, or export and when there are no session folders. Failures are reported and remaining entries stay visible. Low-disk warnings remain future work.
 
-The v0.4.3 update is staged at `dist/updates/v0.4.3/Bug.app`; the existing `dist/Bug.app` was left intact because Bug was running. Stop any capture, quit the old copy, then open the staged update. This ad-hoc build may require capture permission reapproval; see [recovery instructions](docs/PERMISSIONS.md).
+The v0.4.4 update is staged at `dist/updates/v0.4.4/Bug.app`; the existing `dist/Bug.app` was left intact because Bug was running. Stop any capture, quit the old copy, then open the staged update. This ad-hoc build may require capture permission reapproval; see [recovery instructions](docs/PERMISSIONS.md).
 
 ## Silence reminder
 

@@ -1,5 +1,12 @@
 # Validation · 2026-09-07
 
+## Footer spacing · v0.4.4
+
+- User confirmed v0.4.3 deletion succeeds; screenshot showed 13 sessions moved, zero recordings, and a cramped footer.
+- Debug build, 52 tests in 7 suites, and staged release/signature verification passed.
+- Inspected an offscreen render matching the empty-library/success-notice state using `--deleted-fixture`: footer bottom padding is visible and empty-state text wraps fully. Real MenuBarExtra resizing remains a hands-on check.
+- Packaged at `dist/updates/v0.4.4/Bug.app`; no running copy or personal files were changed.
+
 ## Independent bulk confirmation · v0.4.3
 
 - User reported the previous SwiftUI confirmation disappearing with the menu and returning on reopen. Native UI behavior was not reproduced independently; replaced the popover-bound alert with standalone NSAlert ownership.

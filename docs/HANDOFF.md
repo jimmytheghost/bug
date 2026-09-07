@@ -1,6 +1,6 @@
 # Agent handoff
 
-Last updated: **2026-09-07**. Version **0.4.3**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
+Last updated: **2026-09-07**. Version **0.4.4**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
 
 ## Where we left off
 
@@ -11,6 +11,12 @@ The user confirmed system audio with an optional microphone, a small local libra
 The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The design reference is the sibling `/Users/jimmytheghost/Dropbox/_Personal Projects/agent-dashboard` (Worklog). That app was inspected, not modified. Bug has no runtime dependency on that checkout.
 
 The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
+
+## Footer spacing · v0.4.4
+
+The user confirmed Delete All works in v0.4.3. Their post-deletion screenshot showed the footer pressed against the lower window edge and truncated empty-state text. The panel now requests its intrinsic vertical size; the footer resists vertical compression and has 22-point bottom padding with a minimum 20-point control row. Empty-state copy wraps fully.
+
+Latest staged app: `dist/updates/v0.4.4/Bug.app`. No running copy was replaced. The preview helper now supports `--deleted-fixture` to reproduce the screenshot state without touching user files. See validation for checks; actual menu-bar resizing remains a live visual check.
 
 ## Confirmation repair · v0.4.3
 

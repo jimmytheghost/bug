@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-07** against the v0.4.3 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-07** against the v0.4.4 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -24,7 +24,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `AudioTrimmer.swift` | Conservative boundary scan and persistent 48 kHz trim range |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.3, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.4, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -126,3 +126,5 @@ Use [VALIDATION.md](VALIDATION.md) for dated results and [ACCEPTANCE.md](ACCEPTA
 ## Bulk confirmation ownership · v0.4.3
 
 The Settings button defers to the main-actor store's `requestDeleteAll` after yielding. A standalone NSAlert runs modally, independently of the MenuBarExtra window. It holds its UUID snapshot locally through dismissal and interprets only the second button as confirmation. Cancel is the default; the destructive action has no default key. A reentrancy guard prevents duplicate presentations. Tests inject the confirmation response to verify both outcomes and duplicate suppression; actual UI activation remains a hands-on check.
+
+The v0.4.4 panel requests intrinsic vertical sizing. Footer controls retain at least 20 points of height with 14-point top/side padding and 22-point bottom padding; the footer resists vertical compression. Empty-state text wraps without vertical truncation.
