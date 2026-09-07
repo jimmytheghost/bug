@@ -34,6 +34,8 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var playingID: UUID?
     @Published private(set) var preparingPlaybackID: UUID?
     @Published private(set) var trimmingID: UUID?
+    @Published private(set) var preparingCustomTrimID: UUID?
+    @Published private(set) var customTrimState: CustomTrimEditorState?
 
     private var confirmingDeletion = false
     private var library: RecordingLibrary?
@@ -46,6 +48,8 @@ final class RecorderStore: ObservableObject {
     private var player: AVAudioPlayer?
     private var playbackURL: URL?
     private var playbackTask: Task<Void, Never>?
+    private var customTrimPlayer: AVAudioPlayer?
+    private var customTrimPreviewURL: URL?
     private var latestLevel: Float = 0
     private var latestLevelAt = Date.distantPast
     private var failedWhileStarting = false
@@ -171,6 +175,7 @@ final class RecorderStore: ObservableObject {
             }
         }
         if playingID != nil, player?.isPlaying != true { stopPlayback() }
+        updateCustomTrimPlayback()
     }
 
     func receiveCaptureLevel(_ level: Float) {
@@ -348,6 +353,159 @@ final class RecorderStore: ObservableObject {
         } catch { errorMessage = "Trim failed: \(error.localizedDescription) Your original recording is safe." }
     }
 
+    func customTrim(_ recording: Recording) async {
+        guard canTrim, let library,
+              let current = recordings.first(where: { $0.id == recording.id }) else { return }
+        stopPlayback()
+        trimmingID = current.id
+        preparingCustomTrimID = current.id
+        errorMessage = nil
+        notice = nil
+        let previewURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Bug-custom-trim-\(UUID().uuidString).wav")
+        do {
+            async let waveform = AudioWaveformAnalyzer().analyze(
+                systemURL: library.url(for: current),
+                microphoneURL: current.microphoneFilename == nil ? nil : library.url(for: current, microphone: true),
+                duration: current.duration
+            )
+            async let preview: Void = exporter.export(
+                systemURL: library.url(for: current),
+                microphoneURL: current.microphoneFilename == nil ? nil : library.url(for: current, microphone: true),
+                to: previewURL, format: .wav, trimRange: nil
+            )
+            let peaks = try await waveform
+            try await preview
+            try Task.checkCancellation()
+            guard trimmingID == current.id else {
+                try? FileManager.default.removeItem(at: previewURL)
+                return
+            }
+            let player = try AVAudioPlayer(contentsOf: previewURL)
+            player.prepareToPlay()
+            let selection = CustomTrimSelection(duration: current.duration, initialRange: current.trimRange)
+            customTrimPlayer = player
+            customTrimPreviewURL = previewURL
+            preparingCustomTrimID = nil
+            customTrimState = CustomTrimEditorState(recordingID: current.id, title: current.title,
+                                                     waveform: peaks, selection: selection,
+                                                     playheadFrame: selection.startFrame)
+        } catch is CancellationError {
+            try? FileManager.default.removeItem(at: previewURL)
+            if trimmingID == current.id { trimmingID = nil }
+            if preparingCustomTrimID == current.id { preparingCustomTrimID = nil }
+            notice = "Custom Trim cancelled. Recording unchanged."
+        } catch {
+            try? FileManager.default.removeItem(at: previewURL)
+            if trimmingID == current.id { trimmingID = nil }
+            if preparingCustomTrimID == current.id { preparingCustomTrimID = nil }
+            errorMessage = "Could not open Custom Trim: \(error.localizedDescription) Your original recording is safe."
+        }
+    }
+
+    func setCustomTrimStart(_ fraction: Double) {
+        guard var state = customTrimState else { return }
+        state.selection.setStart(fraction: fraction)
+        if state.playheadFrame < state.selection.startFrame {
+            state.playheadFrame = state.selection.startFrame
+            customTrimPlayer?.currentTime = Double(state.playheadFrame) / 48_000
+        }
+        customTrimState = state
+    }
+
+    func setCustomTrimEnd(_ fraction: Double) {
+        guard var state = customTrimState else { return }
+        state.selection.setEnd(fraction: fraction)
+        if state.playheadFrame > state.selection.endFrame {
+            state.playheadFrame = state.selection.endFrame
+            customTrimPlayer?.currentTime = Double(state.playheadFrame) / 48_000
+        }
+        customTrimState = state
+    }
+
+    func seekCustomTrim(_ fraction: Double) {
+        guard var state = customTrimState else { return }
+        let bounded = fraction.clamped(to: state.selection.startFraction...state.selection.endFraction)
+        state.playheadFrame = Int64((bounded * Double(state.selection.totalFrames)).rounded())
+        customTrimPlayer?.currentTime = Double(state.playheadFrame) / 48_000
+        customTrimState = state
+    }
+
+    func skipCustomTrim(seconds: TimeInterval) {
+        guard let state = customTrimState else { return }
+        let frame = state.playheadFrame + Int64((seconds * 48_000).rounded())
+        seekCustomTrim(Double(frame) / Double(state.selection.totalFrames))
+    }
+
+    func toggleCustomTrimPlayback() {
+        guard var state = customTrimState, let customTrimPlayer else { return }
+        if state.isPlaying {
+            customTrimPlayer.pause()
+            state.isPlaying = false
+        } else {
+            if state.playheadFrame >= state.selection.endFrame {
+                state.playheadFrame = state.selection.startFrame
+            }
+            customTrimPlayer.currentTime = Double(state.playheadFrame) / 48_000
+            state.isPlaying = customTrimPlayer.play()
+        }
+        customTrimState = state
+    }
+
+    func saveCustomTrim() {
+        guard let state = customTrimState, trimmingID == state.recordingID, let library,
+              var current = recordings.first(where: { $0.id == state.recordingID }) else { return }
+        customTrimPlayer?.pause()
+        let range = state.selection.range
+        let totalFrames = max(CustomTrimSelection.minimumFrames, Int64((current.duration * 48_000).rounded()))
+        guard range.isValid, range.startFrame >= 0, range.endFrame <= totalFrames else {
+            errorMessage = "Custom Trim selection is invalid. Recording unchanged."
+            return
+        }
+        let savedRange: AudioTrimRange? = range.startFrame == 0 && range.endFrame == totalFrames ? nil : range
+        current.trimRange = savedRange
+        do {
+            try library.save(current)
+            if let index = recordings.firstIndex(where: { $0.id == current.id }) { recordings[index] = current }
+            closeCustomTrim()
+            errorMessage = nil
+            notice = savedRange == nil
+                ? "Custom Trim restored the full recording."
+                : "Custom Trim saved. Undo restores the original recording."
+        } catch {
+            errorMessage = "Could not save Custom Trim: \(error.localizedDescription) Your original recording is safe."
+        }
+    }
+
+    func cancelCustomTrim() {
+        guard customTrimState != nil else { return }
+        closeCustomTrim()
+        notice = "Custom Trim cancelled. Recording unchanged."
+    }
+
+    private func closeCustomTrim() {
+        customTrimPlayer?.stop()
+        customTrimPlayer = nil
+        if let customTrimPreviewURL { try? FileManager.default.removeItem(at: customTrimPreviewURL) }
+        customTrimPreviewURL = nil
+        preparingCustomTrimID = nil
+        customTrimState = nil
+        trimmingID = nil
+    }
+
+    private func updateCustomTrimPlayback() {
+        guard var state = customTrimState, state.isPlaying, let customTrimPlayer else { return }
+        state.playheadFrame = min(state.selection.endFrame,
+                                  Int64((customTrimPlayer.currentTime * 48_000).rounded()))
+        if !customTrimPlayer.isPlaying || state.playheadFrame >= state.selection.endFrame {
+            customTrimPlayer.pause()
+            state.isPlaying = false
+            state.playheadFrame = state.selection.endFrame
+            customTrimPlayer.currentTime = Double(state.playheadFrame) / 48_000
+        }
+        customTrimState = state
+    }
+
     func undoTrim(_ recording: Recording) {
         guard canTrim, let library,
               var current = recordings.first(where: { $0.id == recording.id }), current.trimRange != nil else { return }
@@ -366,6 +524,9 @@ final class RecorderStore: ObservableObject {
         guard let library else { return }
         librarySessionIDs = try library.sessionIDs()
         let current = try library.load()
+        if let id = customTrimState?.recordingID, !current.contains(where: { $0.id == id }) {
+            closeCustomTrim()
+        }
         if let id = playingID ?? preparingPlaybackID, !current.contains(where: { $0.id == id }) {
             stopPlayback()
         }

@@ -1,6 +1,13 @@
 # Validation · 2026-09-07
 
-Current baseline: v0.4.4, 52 tests in 7 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.5.0, 56 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Inline Custom Trim · v0.5.0
+
+- `swift build` passed and `scripts/test.sh` executed **56 tests in 8 suites**, all passing. Four new synthetic tests cover handle clamping/current-bound initialization, fixed-size waveform analysis across system and microphone tracks, saved manual metadata bounds, cancellation, persistence, and unchanged source bytes.
+- The full Custom Trim state was generated from isolated synthetic audio and rendered offscreen at the real 360-point panel width. The rendered editor replaces the recorder card and shows title, retained duration, Cancel, ±5-second controls, Play, Save, mint handles, full waveform, playhead, and three time labels without clipping. This validates layout, not mouse dragging or listening.
+- Release packaging passed at `dist/updates/v0.5.0/Bug.app`; Info.plist reports version 0.5.0/build 9 and deep/strict signature verification passed. The running installed app was not terminated or replaced, so canonical installation and permission reapproval remain pending.
+- No live audio was captured and no personal recording was opened, edited, exported, or deleted. Hands-on bounds, audition, saved playback/WAV/MP3 equivalence, and relaunch behavior remain in [ACCEPTANCE.md](ACCEPTANCE.md).
 
 ## Footer spacing · v0.4.4
 

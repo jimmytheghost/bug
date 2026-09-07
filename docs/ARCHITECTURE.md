@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-07** against the v0.4.4 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-07** against the v0.5.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -22,9 +22,10 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `SilenceMonitor.swift` | Deterministic silence timer, settings options and stale-reminder IDs |
 | `SilenceReminderPresenter.swift` | Independent nonmodal AppKit reminder panel and SwiftUI content |
 | `AudioTrimmer.swift` | Conservative boundary scan and persistent 48 kHz trim range |
+| `CustomTrimEditor.swift` | Bounded full-recording waveform, frame selection model, and inline drag-handle view |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.4.4, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.5.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -32,7 +33,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 
 The menu bar recording symbol persists while the panel is closed. A 50 ms timer registered in the main run loop's common modes updates elapsed time and a fixed 64-level waveform history. The engine reports RMS at most about 20 times/second; levels older than 200 ms become silence. The displayed elapsed clock begins after startup succeeds; source alignment uses the earlier host-clock capture epoch.
 
-Starting capture stops preview playback. Preview is disabled during capture and uses a temporary mixed WAV plus `AVAudioPlayer`. Quit is blocked while capture is starting/running/stopping or a Trim analysis or export/save dialog is active. The microphone preference is stored under `includeMicrophone` in UserDefaults. Login at startup uses `SMAppService.mainApp` and macOS approval state.
+Starting capture stops preview playback. Preview is disabled during capture and uses a temporary mixed WAV plus `AVAudioPlayer`. Quit is blocked while capture is starting/running/stopping, automatic or Custom Trim is active, or an export/save dialog is active. The microphone preference is stored under `includeMicrophone` in UserDefaults. Login at startup uses `SMAppService.mainApp` and macOS approval state.
 
 ## Capture contract and concurrency
 
@@ -110,6 +111,12 @@ Padding defaults to 0.5 seconds, validates within 0–2 seconds, and clamps the 
 `AudioTrimRange` stores `startFrame: Int64` and `endFrame: Int64` (exclusive) in the 48 kHz timeline. The loader validates nonnegative, increasing bounds; export verifies that the end exists in source data. Analysis never changes CAF files. The store saves the optional range atomically in `recording.json`, then updates the displayed duration. Rename resolves current state so an older UI snapshot cannot discard the edit. Undo clears the saved range and restores the original duration, also after relaunch. Failure to save metadata does not pretend the edit succeeded. Repeated Trim requests on an already trimmed recording are ignored; Undo permits a new analysis from the original sources.
 
 During Trim, capture/playback/other trims and exports are blocked, and the target cannot be renamed or deleted. Trim and Undo stop active preview playback to avoid playing stale audio. Save/export blocks Trim so the bounds cannot change while an export dialog or encoding task is active. Settings stores `trimPadding` in UserDefaults; changes affect future analyses only.
+
+### Custom Trim
+
+Custom Trim reuses the same `AudioTrimRange` metadata and export contract as automatic Trim. Opening it replaces the live recorder card in the 360-point menu panel with an inline editor; it does not open a second window. `AudioWaveformAnalyzer` streams the original system and optional microphone tracks through `ExportTrack`, merges per-frame peaks into a fixed 720-bucket overview, and never retains the recording's full PCM in memory. A temporary untrimmed mixed WAV supports auditioning and is removed on Save or Cancel. Consequently Custom Trim preview shares the existing classic-WAV size and temporary-disk limits.
+
+`CustomTrimSelection` stores draggable bounds as frames on the common 48 kHz timeline and enforces a 10 ms minimum selection. The editor starts at the full recording or the currently saved trim, supports click/drag seeking, five-second skips, and playback limited to the proposed bounds. Save atomically replaces `trimRange`; choosing the entire recording clears it. Cancel and metadata-write failures preserve the previous bounds. Neither action modifies source CAF bytes. While preparation or editing is active, capture, export, deletion, other trims, and Quit remain disabled.
 
 This is fixed-threshold boundary detection, not semantic song/speech detection or noise removal. Above-threshold noise stays; extremely quiet material below the threshold may be excluded beyond the retained padding. Existing exports are never retroactively edited. The original source storage size is unchanged.
 

@@ -27,6 +27,17 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Check all-silent, short, continuously audible, very quiet, and noisy recordings. No-op results should be clear; use Undo if detection cuts too much.
 - [ ] Include microphone speech before/after system audio and confirm it remains in the trimmed result. Test long-file processing and a metadata write failure without risking real recordings.
 
+## Custom Trim · v0.5.0
+
+- [ ] Click the slider button on a saved recording. Confirm the live System Audio card is replaced in-place by that recording's complete waveform; no separate editor window should appear.
+- [ ] Drag the left and right mint handles. Confirm they cannot cross, the displayed start/end and kept duration update, and clicking or dragging inside the waveform moves the playhead without moving a handle.
+- [ ] Use Play/Pause and the five-second skip controls. Confirm audition starts at the playhead, stays inside the proposed bounds, and stops at the right handle.
+- [ ] Cancel after changing both handles. Confirm the prior trim state, displayed duration, playback, and exports remain unchanged.
+- [ ] Save a manual selection, then play and export WAV and MP3. Confirm all three use matching start/end bounds and the edit survives relaunch and rename.
+- [ ] Open Custom Trim on an automatically or manually trimmed recording. Confirm it begins at the saved bounds; adjust and Save, then Undo to restore the complete original.
+- [ ] Select the complete waveform and Save. Confirm this clears the trim. Verify source CAF bytes and library storage do not shrink after any Custom Trim operation.
+- [ ] Check a system-plus-microphone recording, a long recording, a nearly silent recording, and metadata/preview failures. Confirm both sources appear in the overview and failures preserve the prior edit and source files.
+
 ## Silence reminder · v0.3.0
 
 - [ ] With default settings, start capture and leave the source silent. Close the menu bar panel, switch to another app, and confirm a standalone reminder appears after about 30 seconds.

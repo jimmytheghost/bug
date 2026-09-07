@@ -65,7 +65,7 @@ struct BugMenuView: View {
                 .background(.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
             VStack(alignment: .leading, spacing: 2) {
                 Text("Bug").font(.headline)
-                Text(status).font(.caption).foregroundStyle(.secondary)
+                Text(status).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
             Button { showingSettings.toggle() } label: {
@@ -81,6 +81,8 @@ struct BugMenuView: View {
     }
 
     private var status: String {
+        if let customTrim = store.customTrimState { return "Custom Trim · \(customTrim.title)" }
+        if store.preparingCustomTrimID != nil { return "Preparing Custom Trim…" }
         switch store.phase {
         case .idle: return store.trimmingID == nil ? "Catch a little audio." : "Trimming recording…"
         case .starting: return "Starting audio capture…"
@@ -89,7 +91,28 @@ struct BugMenuView: View {
         }
     }
 
-    private var recorder: some View {
+    @ViewBuilder private var recorder: some View {
+        if let state = store.customTrimState { customTrimEditor(state) }
+        else if let id = store.preparingCustomTrimID,
+                let recording = store.recordings.first(where: { $0.id == id }) {
+            customTrimLoading(recording)
+        }
+        else { liveRecorder }
+    }
+
+    private func customTrimLoading(_ recording: Recording) -> some View {
+        VStack(spacing: 10) {
+            ProgressView().controlSize(.small)
+            Text("Preparing Custom Trim…").font(.callout.weight(.medium))
+            Text(recording.title).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            Text("Building the full-recording waveform and preview.")
+                .font(.caption2).foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, 22)
+        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 9))
+    }
+
+    private var liveRecorder: some View {
         VStack(spacing: 14) {
             HStack {
                 HStack(spacing: 5) {
@@ -130,6 +153,60 @@ struct BugMenuView: View {
             .buttonStyle(.plain)
             .disabled(store.phase == .starting || store.phase == .stopping || store.trimmingID != nil)
             .keyboardShortcut("r", modifiers: [.command])
+        }
+        .padding(12)
+        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 9))
+    }
+
+    private func customTrimEditor(_ state: CustomTrimEditorState) -> some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("CUSTOM TRIM").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                    Text(state.title).font(.caption).lineLimit(1)
+                }
+                Spacer()
+                Text("Keep \(RecorderStore.durationLabel(state.selection.duration))")
+                    .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 12) {
+                Button("Cancel") { store.cancelCustomTrim() }
+                    .buttonStyle(.bordered)
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button { store.skipCustomTrim(seconds: -5) } label: { Image(systemName: "gobackward.5") }
+                    .buttonStyle(.plain)
+                Button { store.toggleCustomTrimPlayback() } label: {
+                    Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title3).frame(width: 28)
+                }
+                .buttonStyle(.plain)
+                Button { store.skipCustomTrim(seconds: 5) } label: { Image(systemName: "goforward.5") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Button("Save") { store.saveCustomTrim() }
+                    .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
+            }
+            CustomTrimWaveformView(
+                samples: state.waveform,
+                totalFrames: state.selection.totalFrames,
+                start: state.selection.startFraction,
+                end: state.selection.endFraction,
+                playhead: state.playheadFraction,
+                setStart: store.setCustomTrimStart,
+                setEnd: store.setCustomTrimEnd,
+                seek: store.seekCustomTrim
+            )
+            .frame(height: 64)
+            HStack {
+                Text(RecorderStore.durationLabel(Double(state.selection.startFrame) / 48_000))
+                Spacer()
+                Text(RecorderStore.durationLabel(Double(state.playheadFrame) / 48_000))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(RecorderStore.durationLabel(Double(state.selection.endFrame) / 48_000))
+            }
+            .font(.system(.caption2, design: .monospaced)).monospacedDigit()
         }
         .padding(12)
         .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 9))
@@ -229,6 +306,13 @@ struct BugMenuView: View {
                 .help(recording.trimRange == nil ? "Trim silence at the beginning and end" : "Undo Trim and restore the full recording")
                 .accessibilityLabel(recording.trimRange == nil ? "Trim \(recording.title)" : "Undo Trim for \(recording.title)")
             }
+            Button { Task { await store.customTrim(recording) } } label: {
+                Image(systemName: "slider.horizontal.3").frame(width: 20, height: 28).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).foregroundStyle(.secondary)
+            .disabled(!store.canTrim)
+            .help("Custom Trim")
+            .accessibilityLabel("Custom Trim \(recording.title)")
             Button { deleting = recording } label: {
                 Image(systemName: "trash").frame(width: 22, height: 28).contentShape(Rectangle())
             }
@@ -247,6 +331,8 @@ struct BugMenuView: View {
                     else { Task { await store.trim(recording) } }
                 }
                 .disabled(!store.canTrim)
+                Button("Custom Trim…") { Task { await store.customTrim(recording) } }
+                    .disabled(!store.canTrim)
                 Button("Rename…") { newTitle = recording.title; renaming = recording }
                     .disabled(store.trimmingID == recording.id)
                 Button("Move to Trash…", role: .destructive) { deleting = recording }
@@ -308,7 +394,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.4.4 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.5.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

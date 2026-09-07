@@ -2,7 +2,7 @@
 
 ## Confirmed scope
 
-macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. The user also approved a silence reminder for initial and later silence: 15/30/60 seconds or Off, 30-second default, either audio source counts, Keep Recording resets the interval, Stop Recording saves, and ignoring continues recording. Library management includes visible Trash controls, size reporting, refresh, and confirmed Delete All including unfinished session folders. No accounts, network service, or uploads.
+macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. Editing includes automatic **Trim** with configurable padding and inline **Custom Trim** with a full-recording waveform and draggable head/tail bounds; both share persistent reversible metadata and Undo. The silence reminder covers initial and later silence: 15/30/60 seconds or Off, 30-second default, either audio source counts, Keep Recording resets the interval, Stop Recording saves, and ignoring continues recording. Library management includes visible Trash controls, size reporting, refresh, and confirmed Delete All including unfinished session folders. No accounts, network service, or uploads.
 
 ## Architecture
 
@@ -28,6 +28,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. User confirmed the successful Delete All flow; broader Cancel/recovery checks remain pending.
 
 - [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.
+- [x] v0.5.0: add inline Custom Trim with bounded waveform analysis, draggable start/end handles, audition controls, Save/Cancel, and shared playback/export bounds; 56 tests in 8 suites pass.
 - [ ] Verify live capture after [canonical installation and scoped permission repair](PERMISSIONS.md), including the next changed build. Stable certificate signing is optional future work; the user accepts normal reapproval.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.

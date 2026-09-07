@@ -1,15 +1,15 @@
 # Agent handoff
 
-Last updated: **2026-09-07, end-of-day checkpoint**. Current version: **0.4.4**, build **8**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-09-07, Custom Trim checkpoint**. Current source/staged version: **0.5.0**, build **9**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
 
-- Latest implementation commit: `180cf79` (footer spacing). Installation-workflow and documentation checkpoints follow it; use `git log -1` for the latest revision.
+- The v0.5.0 implementation adds inline Custom Trim. Use `git log -1` for the latest committed revision.
 - Private repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. GitHub privacy was rechecked for this handoff.
-- Current installed app: `~/Applications/Bug.app`; staging archive: `dist/updates/v0.4.4/Bug.app`. `dist/Bug.app` is the older v0.3.0 copy; it is **not** the latest artifact. Earlier versions remain under `dist/updates/` and `dist/previous/`.
-- Latest executed validation: **52 tests in 7 suites passed**, debug build, release packaging, and deep/strict ad-hoc signature verification. Footer preview with the post-deletion notice was visually checked.
+- Latest artifact: `dist/updates/v0.5.0/Bug.app`. At packaging time the canonical installed v0.4.4 app was still running, so it was deliberately not terminated or replaced. Install only with `scripts/install-app.py` after the user stops any recording and quits Bug.
+- Latest executed validation: **56 tests in 8 suites passed**, debug build, release packaging, and deep/strict ad-hoc signature verification. The inline Custom Trim state was rendered and visually checked at the real 360-point width.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
-- v0.4.4 corrects footer spacing and empty-state truncation. Offscreen validation passed; the user's subsequent “Great” is not evidence that every menu resizing state was tested.
+- v0.5.0 keeps automatic Trim and adds Custom Trim with a full-recording waveform, draggable head/tail handles, bounded audition, Save, and Cancel. Hands-on dragging/listening/export comparison remains unverified.
 - No background work, pending subagent patch, or automatic task needs collection. The user is wrapping up for the day.
 
 The checkout is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The sibling `agent-dashboard` (Worklog) is a design reference only and must not be modified.
@@ -19,6 +19,8 @@ The checkout is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The sibli
 Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional microphone, live waveform, local source CAF library, playback, rename, and WAV/MP3 export. Nothing records on launch.
 
 **Trim** immediately saves reversible metadata bounds. Default padding is 0.5 seconds; Settings offers 0/0.25/0.5/1/2 seconds. Undo survives relaunch. Playback and exports honor the same bounds. Original audio is retained, so Trim does not reclaim storage.
+
+**Custom Trim** is available from the slider button on each recording and from its **…** menu. While preparing, the recorder card shows progress; it then replaces the live System Audio card with the complete recording waveform. Mint left/right handles select the retained region. Click/drag seeks, Play/Pause and ±5-second controls audition only the proposed range, Save writes the shared trim metadata, and Cancel preserves the previous edit. Opening an edited recording starts from its saved bounds; saving the full waveform clears the trim. The source CAF files remain unchanged, and playback/WAV/MP3 exports use the saved result.
 
 **Silence reminder** covers initial and later silence: Off/15/30/60 seconds, default 30. Either included source counts. Keep Recording resets the interval, Stop saves, ignoring continues, and resumed audio dismisses the independent reminder panel. This is not a storage cap.
 
@@ -40,8 +42,8 @@ The user accepts normal reapproval on updates. A signing certificate is optional
 
 ## Next session
 
-1. Review the user's next request; there is no approved unfinished feature implementation.
-2. If testing, use the latest staged app and [ACCEPTANCE.md](ACCEPTANCE.md). Remaining checks include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery/Cancel scenarios.
+1. After the user stops any capture and quits the running app, install `dist/updates/v0.5.0/Bug.app` with `python3 scripts/install-app.py dist/updates/v0.5.0/Bug.app`; do not launch the staged copy.
+2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for hands-on Custom Trim dragging, bounded audition, persistence, and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery/Cancel scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve private visibility and unrelated work.
 
@@ -77,9 +79,10 @@ swiftc -parse-as-library -target arm64-apple-macosx15.0 \
   Sources/Bug/CaptureEngine.swift Sources/Bug/CapturePCMWriter.swift \
   Sources/Bug/RecordingLibrary.swift Sources/Bug/RecorderStore.swift \
   Sources/Bug/SilenceMonitor.swift Sources/Bug/SilenceReminderPresenter.swift \
-  Sources/Bug/BugMenuView.swift scripts/render-preview.swift \
+  Sources/Bug/CustomTrimEditor.swift Sources/Bug/BugMenuView.swift scripts/render-preview.swift \
   -o .build/qa/render-preview
 .build/qa/render-preview .build/qa/bug-panel.png --trim-fixture
+# Use --custom-trim for the isolated inline editor fixture.
 ```
 
 AppKit hosting is intentional: a pure SwiftUI `ImageRenderer` rendered native switches as unsupported placeholders. This preview checks layout only, not clicks or menu bar behavior.
@@ -90,6 +93,7 @@ AppKit hosting is intentional: a pure SwiftUI `ImageRenderer` rendered native sw
 - **One corrupt metadata file can fail the whole library load.** The loader rejects bad JSON, mismatched IDs, and non-basename source paths. It does not quarantine a bad entry or verify all source files exist when listing. Missing audio is reported when playback/export tries to open it.
 - **Long recordings use disk space.** Float32 stereo system audio is about 1.4 GB/hour plus native microphone audio. Silence is written in bounded chunks, not sparse files. There is no quota, free-space preflight, automatic retention, or rotation.
 - **Playback prepares the selected mixed WAV.** It can be slow and needs extra temporary disk space; it shares WAV's roughly 4.14-hour limit. MP3 export can still work above that WAV limit. A force quit may leave a temporary preview or export staging file.
+- **Custom Trim also prepares an untrimmed mixed WAV for audition.** Its waveform analysis remains fixed at 720 peaks, but editor preparation needs temporary disk space and shares the same roughly 4.14-hour WAV limit. Save/Cancel removes the preview during normal operation.
 - **Capture requires an available display filter and permissions.** No video is saved, but ScreenCaptureKit receives and discards screen callbacks. Protected sources may be unavailable. Multichannel microphones beyond mono/stereo are rejected during ingestion; device format changes interrupt capture.
 - **Export progress is indeterminate.** The UI has a spinner and a cancellable save dialog, but no explicit cancel/progress control once encoding begins. The exporter supports task cancellation internally.
 - **Local signing only.** No Developer ID, notarization, sandbox distribution configuration, auto-update, or verified Intel/universal release. Launch-at-login behavior still needs packaged-app testing.

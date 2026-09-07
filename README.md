@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.4.4**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The latest implementation checkpoint is `180cf79`; use `git log` for subsequent documentation commits. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.5.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. Use `git log` for the latest implementation checkpoint. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The user confirmed Delete All succeeds in v0.4.3. The current implementation passed 52 synthetic tests, including Trim and silence reminders, and release/signature checks. The user reported a forgotten recording that produced over 1 GB of silence. Live signal quality, permission flows, and the new reminder's real-device behavior still need acceptance testing.
+The user confirmed Delete All succeeds in v0.4.3. The current implementation passed 56 synthetic tests in 8 suites, including automatic Trim, Custom Trim, exports, and silence reminders. Live signal quality, permission flows, Custom Trim interaction, and reminder behavior still need hands-on acceptance testing.
 
 ## What it does
 
@@ -17,6 +17,7 @@ The user confirmed Delete All succeeds in v0.4.3. The current implementation pas
 - Saves stopped recordings to a local library with playback, rename, and Move to Trash.
 - Exports 48 kHz / 24-bit stereo WAV or 320 kbps stereo MP3.
 - Offers optional **Trim** with immediate application, persistent Undo, and 0.5-second head/tail padding by default.
+- Offers **Custom Trim** with a full-recording waveform, draggable head/tail bounds, preview controls, Save, and Cancel.
 - Offers a configurable silence reminder before the source starts and during later silent stretches.
 - Offers launch at login. No accounts, uploads, or background web service.
 
@@ -54,7 +55,7 @@ The list refreshes when the panel appears, when Bug becomes active, and every fi
 
 Trash is recoverable, and exported copies outside the source folder stay untouched. **Empty macOS Trash to reclaim disk space.** There is no automatic deletion. Trim keeps the original sources for Undo and therefore does not reduce library storage. **Delete All** in Settings opens an independent macOS warning dialog for confirmation before moving the displayed snapshot of session folders, including empty and unfinished sessions, to Trash. It is disabled during recording, Trim, or export and when there are no session folders. Failures are reported and remaining entries stay visible. Low-disk warnings remain future work.
 
-The current installed v0.4.4 app is `~/Applications/Bug.app`. All future updates must use `scripts/install-app.py`, which clears Bug’s stale screen-capture grant when the build identity changes. Then approve the installed copy and restart if macOS asks. Staging folders are archives, not launch targets. See [installation and recovery instructions](docs/PERMISSIONS.md).
+The canonical installed app is `~/Applications/Bug.app`. All updates must use `scripts/install-app.py`, which clears Bug’s stale screen-capture grant when the build identity changes. Then approve the installed copy and restart if macOS asks. Staging folders are archives, not launch targets. See [installation and recovery instructions](docs/PERMISSIONS.md).
 
 ## Silence reminder
 
@@ -75,6 +76,8 @@ After stopping, click **Trim** beside the saved recording. It removes leading an
 Playback and subsequent WAV/MP3 exports use the trim. Original CAF files stay unchanged; **Undo** restores the full recording, including after relaunch. Previously exported files do not change. An entirely silent track or one with no removable silence stays unchanged.
 
 In Settings, **Trim padding** offers none, 0.25, 0.5, 1, or 2 seconds at each end. It affects the next Trim operation; Undo first to reapply a different padding to an already trimmed recording. Padding is limited to available audio and never inserts new silence.
+
+For manual control, click the slider button on a recording or choose **Custom Trim…** from its **…** menu. Bug replaces the live recorder card with the entire recording waveform. Drag the mint left and right handles to choose what to keep; click or drag inside the waveform to seek, use the play and five-second skip controls to preview, then choose **Save** or **Cancel**. Opening Custom Trim on an already trimmed recording starts from its saved bounds. Saving replaces those bounds; selecting the full recording clears the trim. Playback and later WAV/MP3 exports use the saved selection, while Undo still restores the complete source.
 
 Detection uses a conservative fixed -60 dBFS threshold across both channels of each source. Quiet fades below that threshold may be treated as silence; background noise above it may prevent a trim. It detects audio boundaries, not the start/end of a specific song: other audible material before or after a song is retained. Always use Undo if the result is not what you want.
 
