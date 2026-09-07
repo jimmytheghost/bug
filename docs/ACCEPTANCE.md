@@ -4,7 +4,7 @@
 
 Automated tests use synthetic samples. These checks require the user's macOS permissions and actual audio sources; do not mark them passed based on compilation alone.
 
-- [ ] Open `dist/updates/v0.4.4/Bug.app`. Confirm one ladybug menu bar item, no Dock icon, and a compact Worklog-style panel.
+- [ ] Open `~/Applications/Bug.app`. Confirm one ladybug menu bar item, no Dock icon, and a compact Worklog-style panel.
 - [ ] Deny system recording permission once. Confirm a useful error and working permission settings link. Grant permission and reopen Bug if macOS requests it.
 - [ ] Play known non-protected audio. Record with microphone off. Confirm waveform and timer, close/reopen the panel, stop, and confirm a new library entry.
 - [ ] Play the entry. Export WAV and MP3 and listen to both; compare beginning, middle, end, stereo channels, and duration.
@@ -44,7 +44,7 @@ Capture is never started automatically by app launch or by tests.
 
 ## Library storage · v0.4.0
 
-- [ ] Stop any active capture, quit the old Bug, and open `dist/updates/v0.4.4/Bug.app`. Reapprove capture if needed.
+- [ ] Stop any active capture, quit the old Bug, and open `~/Applications/Bug.app`. Reapprove capture if needed.
 - [ ] Verify visible Trash buttons on short/long titles and trimmed/microphone recordings; cancel once, then confirm deletion on a disposable recording.
 - [ ] Confirm the row and totals update, exported copies outside its folder stay intact, and the source folder can be restored from macOS Trash.
 - [ ] Move a disposable UUID recording folder out in Finder and restore it. Verify refresh with the panel open (within about five seconds), after reopening, and when returning from Finder.
@@ -65,3 +65,10 @@ Capture is never started automatically by app launch or by tests.
 - [ ] Confirm footer padding after Delete All with the success notice visible, after dismissing the notice, with saved recordings, and in Settings. Verify the panel resizes without clipping its bottom controls.
 
 Earlier v0.4.1 preservation of unfinished sessions and its popover-attached confirmation were superseded by v0.4.2/v0.4.3. Test the current behavior above.
+
+
+## Installation and permission repair
+
+- [ ] After the scoped reset and canonical installation, approve Bug again, restart if requested, and confirm actual capture starts.
+- [ ] For the next changed build, install with `scripts/install-app.py`. Verify the reset notice, fresh permission approval, and successful capture afterward.
+- [ ] Verify unchanged-identity installation preserves the grant and running-app installation is refused.

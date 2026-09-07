@@ -18,7 +18,7 @@ Native SwiftUI macOS 15+ menu bar audio recorder, part of the Worklog suite.
 3. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for canonical implementation contracts.
 4. Read [docs/PLAN.md](docs/PLAN.md), [docs/VALIDATION.md](docs/VALIDATION.md), and [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) before claiming completion or testing live capture.
 
-For permission failures and packaging changes, also read [docs/PERMISSIONS.md](docs/PERMISSIONS.md). Preserve the installed bundle while the user reauthorizes it; validate packaging in a separate output directory. An enabled privacy toggle does not prove the current code identity is authorized.
+For permission failures and packaging changes, also read [docs/PERMISSIONS.md](docs/PERMISSIONS.md). Deliver all updates through `scripts/install-app.py` to `~/Applications/Bug.app`; never tell the user to launch a versioned staging copy. The installer resets only Bug ScreenCapture when the designated requirement changes, before user reapproval. Preserve the installed bundle while the user reauthorizes it; validate packaging in a separate output directory. An enabled privacy toggle does not prove the current code identity is authorized.
 
 Keep HANDOFF focused on current behavior and one latest artifact path; place superseded behavior in dated VALIDATION history rather than appending conflicting “latest” sections.
 

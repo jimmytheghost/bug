@@ -128,3 +128,8 @@ Use [VALIDATION.md](VALIDATION.md) for dated results and [ACCEPTANCE.md](ACCEPTA
 The Settings button defers to the main-actor store's `requestDeleteAll` after yielding. A standalone NSAlert runs modally, independently of the MenuBarExtra window. It holds its UUID snapshot locally through dismissal and interprets only the second button as confirmation. Cancel is the default; the destructive action has no default key. A reentrancy guard prevents duplicate presentations. Tests inject the confirmation response to verify both outcomes and duplicate suppression; actual UI activation remains a hands-on check.
 
 The v0.4.4 panel requests intrinsic vertical sizing. Footer controls retain at least 20 points of height with 14-point top/side padding and 22-point bottom padding; the footer resists vertical compression. Empty-state text wraps without vertical truncation.
+
+
+## Installed application and permission migration
+
+All delivery uses `scripts/install-app.py` to `~/Applications/Bug.app`. It verifies source/staged signatures and bundle ID, refuses installation while Bug runs, compares designated requirements, and resets only Bug ScreenCapture before changed-identity installation (also on first install). The previous canonical app is backed up outside the repo; repo-local archived bundles are unregistered from Launch Services. Same-identity installs preserve permission unless explicitly invoked with `--repair-permissions`. The source binary is copied unchanged. Reapproval/restart are user actions; signature verification does not prove capture access. See [PERMISSIONS.md](PERMISSIONS.md).

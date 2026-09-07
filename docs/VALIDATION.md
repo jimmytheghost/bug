@@ -104,3 +104,11 @@ GitHub reported `jimmytheghost/bug` as PRIVATE, with `main` synchronized to the 
 Reconciled README, handoff, architecture references, permissions, plan, and acceptance with v0.4.4 source/build 8 and implementation commit `180cf79`. Replaced accumulated handoff history with current behavior, corrected superseded deletion checks, marked the user-confirmed Delete All result, and preserved historical validation evidence. Updated build commands to use staging directories. GitHub reported the repository PRIVATE.
 
 Checked repository-local Markdown file links, paired code fences, version metadata, and diff formatting. This documentation-only pass did not rebuild, launch an app, record audio, reset permissions, or access/delete personal recordings. The 52-test result is from the preceding implementation pass.
+
+
+## Recurring permission denial after approval · canonical install repair
+
+- At 16:02:53 on 2026-09-07, focused `tccd` logs explicitly compared saved v0.3.0 hash `12d29f34…` with running v0.4.4 `d58f9986…` and reported mismatched code requirements. The user had already enabled the toggle. This reproduces the stale-grant mechanism from the earlier v0.1.0 → v0.3.0 incident.
+- Gracefully quit Bug via its application quit action, reset only Bug ScreenCapture, installed unchanged v0.4.4 at `~/Applications/Bug.app`, unregistered repo-local archives, and reopened the canonical copy. Installer source/staging deep/strict signature verification passed.
+- Python syntax check and read-only installer check passed. Rechecking the installed identity correctly reported no reset needed. An installation attempt while Bug was running was refused before mutation.
+- No live audio was captured, no user recordings were deleted, and no certificate/trust setting was changed. Runtime recovery and the next update's reapproval remain awaiting user verification. This pass changes delivery tooling/docs, not the 52-test app baseline.

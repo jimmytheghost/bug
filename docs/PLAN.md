@@ -28,7 +28,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] v0.4.3: move bulk confirmation out of MenuBarExtra into standalone NSAlert; 52 tests pass. User confirmed the successful Delete All flow; broader Cancel/recovery checks remain pending.
 
 - [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.
-- [ ] Verify live capture authorization and [permission recovery](PERMISSIONS.md) if needed, configure an existing stable signing identity, and verify grant persistence across updates. Scoped reset and packaging support are complete; certificate setup and user reapproval are pending.
+- [ ] Verify live capture after [canonical installation and scoped permission repair](PERMISSIONS.md), including the next changed build. Stable certificate signing is optional future work; the user accepts normal reapproval.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
 
@@ -54,3 +54,5 @@ Automatic retention and low-disk warnings are follow-up candidates; Trash/size/r
 
 
 Distribution signing/notarization, automatic updates, accounts/cloud sync, per-app capture selection, pause/resume, and global shortcuts are not part of the confirmed first release. Do not silently expand into these features. Canonical implementation details are in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+- [x] Add canonical installer with identity comparison and scoped reset before reapproval; require it for every future delivery. Actual post-repair capture verification remains pending.

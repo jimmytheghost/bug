@@ -4,9 +4,9 @@ Last updated: **2026-09-07, end-of-day checkpoint**. Current version: **0.4.4**,
 
 ## Current state
 
-- Latest implementation commit: `180cf79` (footer spacing). The documentation checkpoint follows it; use `git log -1` for the latest revision.
+- Latest implementation commit: `180cf79` (footer spacing). Installation-workflow and documentation checkpoints follow it; use `git log -1` for the latest revision.
 - Private repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. GitHub privacy was rechecked for this handoff.
-- Latest packaged app: `dist/updates/v0.4.4/Bug.app`. `dist/Bug.app` is the older v0.3.0 copy; it is **not** the latest artifact. Earlier versions remain under `dist/updates/` and `dist/previous/`.
+- Current installed app: `~/Applications/Bug.app`; staging archive: `dist/updates/v0.4.4/Bug.app`. `dist/Bug.app` is the older v0.3.0 copy; it is **not** the latest artifact. Earlier versions remain under `dist/updates/` and `dist/previous/`.
 - Latest executed validation: **52 tests in 7 suites passed**, debug build, release packaging, and deep/strict ad-hoc signature verification. Footer preview with the post-deletion notice was visually checked.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - v0.4.4 corrects footer spacing and empty-state truncation. Offscreen validation passed; the user's subsequent “Great” is not evidence that every menu resizing state was tested.
@@ -30,11 +30,13 @@ Bulk confirmation uses a standalone NSAlert owned by the store, independent of M
 
 ## Build identity and safe updates
 
-The packaging default remains ad-hoc signing. A confirmed macOS privacy failure occurred when a v0.1.0 grant did not match v0.3.0's code identity. Only Bug's ScreenCapture grant was reset at that time. No valid signing certificate was found in the last check; stable signing and permission persistence across updates remain unresolved. Later library/deletion feedback does not establish successful live audio capture.
+The user clarified that permission failed **after enabling it**. Logs confirmed the saved v0.3.0 identity was still used for running v0.4.4. Our old workflow (launch each versioned staging build, ask the user to reapprove) left stale grants behind.
 
-Packaging accepts `BUG_SIGNING_IDENTITY` for an existing certificate and verifies signatures. See [PERMISSIONS.md](PERMISSIONS.md) before diagnosing a permission failure. Do not reset permissions prophylactically, create trust exceptions, or assume an enabled toggle authorizes a newly built binary.
+Current installation is `~/Applications/Bug.app` (v0.4.4, unchanged binary). Bug was gracefully quit, its ScreenCapture grant reset, and the app installed/reopened there. Archived repo bundles were unregistered from Launch Services but retained. Runtime recovery awaits the user's reapproval/result; do not infer success from installation alone.
 
-Never terminate a potentially active capture or overwrite its running bundle. Validate in a separate output directory. To use the current staged update, the user stops recording, quits the old copy, and opens `dist/updates/v0.4.4/Bug.app`. Capture reapproval may be needed. Inspect the actual running path/version before refreshing an app; do not infer it from a menu icon.
+**Every delivered update must use `python3 scripts/install-app.py <staged Bug.app>`.** It requires Bug to be quit, stages/verifies the bundle, resets only Bug ScreenCapture when the designated requirement changes, backs up the old app, and installs at the canonical path. Reopen that copy and let the user approve it. Never launch directly from staged version folders. Read [PERMISSIONS.md](PERMISSIONS.md) for diagnostics and explicit same-build repair.
+
+The user accepts normal reapproval on updates. A signing certificate is optional, not a prerequisite for this repair. No certificate/trust changes were made. Never reset unrelated grants, alter the privacy database, or terminate an active capture.
 
 ## Next session
 

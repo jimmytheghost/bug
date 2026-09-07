@@ -31,3 +31,5 @@ chmod 755 "$APP_DIR/Contents/MacOS/Bug"
 codesign --force --sign "$SIGNING_IDENTITY" "$APP_DIR"
 codesign --verify --deep --strict "$APP_DIR"
 printf 'Packaged %s\n' "$APP_DIR"
+printf 'Install updates with: python3 "%s/install-app.py" "%s"\n' "$SCRIPT_DIR" "$APP_DIR"
+printf '%s\n' 'Do not launch this staging copy directly. The installer repairs stale capture grants when the code identity changes.'

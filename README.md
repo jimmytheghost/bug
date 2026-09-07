@@ -32,7 +32,8 @@ swift build
 ./scripts/test.sh
 ./scripts/package-app.sh "$PWD/.build/local-package"
 # Stop recording and quit any old copy before opening this fresh build.
-open .build/local-package/Bug.app
+python3 scripts/install-app.py .build/local-package/Bug.app
+open "$HOME/Applications/Bug.app"
 ```
 
 Use the packaged app for recording: its bundle supplies macOS microphone usage text and the MP3 encoder. `swift run Bug` is only suitable for interface development; permission identity and MP3 encoding require the bundle. Packaging uses ad-hoc signing by default, which can invalidate capture permissions after an update. Set `BUG_SIGNING_IDENTITY` to an existing Apple Development or Developer ID Application identity for stable signing; see [permission recovery and signing](docs/PERMISSIONS.md). Notarization and automatic updates remain future distribution work.
@@ -53,7 +54,7 @@ The list refreshes when the panel appears, when Bug becomes active, and every fi
 
 Trash is recoverable, and exported copies outside the source folder stay untouched. **Empty macOS Trash to reclaim disk space.** There is no automatic deletion. Trim keeps the original sources for Undo and therefore does not reduce library storage. **Delete All** in Settings opens an independent macOS warning dialog for confirmation before moving the displayed snapshot of session folders, including empty and unfinished sessions, to Trash. It is disabled during recording, Trim, or export and when there are no session folders. Failures are reported and remaining entries stay visible. Low-disk warnings remain future work.
 
-The v0.4.4 update is staged at `dist/updates/v0.4.4/Bug.app`; the existing `dist/Bug.app` was left intact because Bug was running. Stop any capture, quit the old copy, then open the staged update. This ad-hoc build may require capture permission reapproval; see [recovery instructions](docs/PERMISSIONS.md).
+The current installed v0.4.4 app is `~/Applications/Bug.app`. All future updates must use `scripts/install-app.py`, which clears Bug’s stale screen-capture grant when the build identity changes. Then approve the installed copy and restart if macOS asks. Staging folders are archives, not launch targets. See [installation and recovery instructions](docs/PERMISSIONS.md).
 
 ## Silence reminder
 

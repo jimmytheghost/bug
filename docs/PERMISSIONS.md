@@ -1,40 +1,48 @@
-# Capture permissions and signing
+# Capture permissions and installation
 
-## Confirmed incident · 2026-09-07
+## Current repair · 2026-09-07
 
-The user enabled Bug under **Screen & System Audio Recording**, but v0.3.0 repeatedly returned a permission error. macOS `tccd` logs explicitly reported `Failed to match existing code requirement` for `com.jimmyweber.bug`. The saved requirement was the v0.1.0 cdhash (`2534b0c9…`); the v0.3.0 build required `12d29f34…`.
+The latest recurrence was **permission denied after the user enabled Bug**, not a complaint about having to approve an update. At 16:02:53, macOS `tccd` reported `Failed to match existing code requirement`: it compared the running v0.4.4 (`d58f998613fff679f7999be703d66c1e6d431542`) against the saved v0.3.0 requirement (`12d29f345e2a2bb6688f197d38a6e6d2a715ab5f`). An enabled toggle had not replaced the stale identity.
 
-The release packages used ad-hoc signing (`codesign --sign -`). Its default designated requirement is tied to that version's code hash, so rebuilding can invalidate a previous permission even though System Settings still displays an enabled entry. This is documented by [Apple's code-signing requirements technote](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements) and confirmed by [Apple DTS for ScreenCaptureKit](https://developer.apple.com/forums/thread/819406).
+The earlier incident compared v0.3.0 against v0.1.0. The first repair reset that grant, but subsequent delivery still had the user launch ad-hoc builds from successive `dist/updates/` folders. It did not ensure the next approval started with a clean identity. Merely offering optional certificate signing and telling the user to toggle permission again was insufficient.
 
-`security find-identity -v -p codesigning` found zero valid signing identities on the development Mac. Do not claim the recurring issue is permanently fixed until a stable identity has been configured and tested across updates.
+This pass gracefully quit Bug, reset only `ScreenCapture` for `com.jimmyweber.bug`, installed the existing v0.4.4 binary at `~/Applications/Bug.app`, unregistered repo-local archived bundles from Launch Services, registered the installed copy, and reopened it. No audio was recorded or deleted, no microphone/other-app grant was reset, and no signing identity or trust setting was changed. User reapproval and a successful capture are required to verify runtime recovery.
 
-## Restore the current build
+## Required workflow for every delivered update
 
-1. Stop any active capture and quit Bug. Close the old permission prompt if it is still open.
-2. Reset only Bug's screen capture grant, if it has not already been reset for this attempt:
+1. Build into a staging directory; never overwrite or launch an active bundle:
 
    ```sh
-   tccutil reset ScreenCapture com.jimmyweber.bug
+   ./scripts/package-app.sh "$PWD/.build/delivery"
    ```
 
-3. Open the intended current app (`dist/updates/v0.4.4/Bug.app` for the latest staged release; `dist/Bug.app` is older), click Record, and approve that copy in **System Settings → Privacy & Security → Screen & System Audio Recording**.
-4. Follow macOS's Quit & Reopen instruction if offered, or quit/reopen Bug once after changing permission. Try Record again.
+2. Stop any active recording and quit Bug. Install the completed package:
 
-During this incident, the scoped reset above succeeded. The running app was not terminated and the installed bundle was not replaced; successful live capture after reapproval has not been explicitly verified. Later feedback confirmed library cleanup, which does not exercise capture permission. The reset affects Bug only, not other apps or its saved recordings. Do not reset all TCC services, edit the privacy database, or grant permissions programmatically. Microphone permission is separate and was not reset.
+   ```sh
+   python3 scripts/install-app.py .build/delivery/Bug.app
+   open "$HOME/Applications/Bug.app"
+   ```
 
-Avoid launching archived versions under `dist/previous/` or running the unbundled executable while diagnosing this. Confirm the running bundle path and version instead of assuming the menu bar icon identifies a particular copy.
+3. When the installer says the identity changed, click Record in the installed copy and approve Bug in **System Settings → Privacy & Security → Screen & System Audio Recording**. Follow Quit & Reopen if requested. Retry Record.
+4. Verify the running path and actual recording result. Do not equate an enabled toggle or a valid code signature with capture authorization.
 
-## Stable signing for future builds
+The installer validates the source bundle ID and deep/strict signature, compares designated requirements, refuses to install while a Bug process is running, stages/verifies the copy, resets only Bug's ScreenCapture grant if the identity differs (or on first installation), preserves the old installed bundle under `~/Library/Application Support/Bug/BuildBackups/`, and installs at a single stable path. Matching identities do not trigger a reset. Repo-local `dist/**/Bug.app` copies are unregistered but retained as archives.
 
-Packaging now supports an existing certificate identity:
+Do not open versioned staging/archive copies for normal use. Do not rebuild/re-sign the installed copy after approval. The single path removes ambiguity; the scoped reset before reapproval addresses the observed stale identity. It does not bypass macOS consent or guarantee that permission can never be revoked.
+
+## If enabled permission still fails
+
+First inspect the actual running path and a focused `tccd` log. Do not assume every failure is a stale identity. If the current grant is confirmed stale, quit Bug and explicitly repair even an unchanged installation:
 
 ```sh
-security find-identity -v -p codesigning
-BUG_SIGNING_IDENTITY='Apple Development: Your Name (IDENTIFIER)' ./scripts/package-app.sh "$PWD/.build/signed-package"
+python3 scripts/install-app.py "$HOME/Applications/Bug.app" --repair-permissions
+open "$HOME/Applications/Bug.app"
 ```
 
-Replace the example with the exact identity name or fingerprint from the first command. Use the same identity for successive builds. The script signs the encoder and the app with that identity and verifies the bundle. If an explicitly selected identity is unavailable, signing fails rather than silently falling back to ad-hoc signing.
+Approve that copy and restart if requested. `--check` prints a read-only installation plan. Never edit the TCC database, reset all services, toggle permissions programmatically, or terminate active capture. A user response to the earlier signing-account question is not required for this workflow.
 
-Without `BUG_SIGNING_IDENTITY`, packaging still uses ad-hoc signing and prints a notice about reapproval after updates. A transition from ad-hoc to certificate signing itself needs a fresh permission grant. No certificate was created/imported, no Keychain trust was changed, and no Apple account was accessed during this repair. Do not weaken the designated requirement to a bare bundle identifier to work around privacy checks.
+## Signing background
 
-A configured certificate must be verified with an actual initial approval, a second signed build, and a recording attempt after updating. Code signature verification alone does not prove permission persistence. This is independent of distribution notarization.
+Ad-hoc default designated requirements are tied to the code hash, so code updates can invalidate grants. See [Apple's requirements technote](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements) and [Apple DTS on ScreenCaptureKit](https://developer.apple.com/forums/thread/819406).
+
+`BUG_SIGNING_IDENTITY` still supports an existing Apple Development or Developer ID Application certificate. No valid identity was found in this session. Stable signing can reduce reapproval, but obtaining a certificate is not a prerequisite for the scoped-reset installation workflow requested here. Even certificate-signed updates must go through the installer, and permission persistence must be verified across real updates. Never weaken the designated requirement to a bare bundle ID.
