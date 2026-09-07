@@ -2,7 +2,7 @@
 
 ## Confirmed scope
 
-macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. No accounts, network service, or uploads.
+macOS personal use first. Native menu bar app matching Worklog. Record all capturable system audio with optional microphone, show a live waveform and elapsed time, stop explicitly, keep a small local recording library, export high-quality WAV or MP3. The user subsequently approved **Trim**: optional immediate boundary-silence removal, Undo, and 0.5 seconds of default padding at each end. The user also approved a silence reminder for initial and later silence: 15/30/60 seconds or Off, 30-second default, either audio source counts, Keep Recording resets the interval, Stop Recording saves, and ignoring continues recording. No accounts, network service, or uploads.
 
 ## Architecture
 
@@ -19,6 +19,8 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] Publish repo-local agent handoff and canonical architecture documentation.
 - [x] Add Trim/Undo, configurable padding, persistent non-destructive bounds, and trimmed playback/exports (v0.2.0).
 - [x] Pass 33 synthetic tests including Trim and metadata compatibility.
+- [x] Add the independent silence reminder panel and persistent gear setting (v0.3.0).
+- [x] Pass 46 synthetic tests including reminder timing and store action/lifecycle tests.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
 

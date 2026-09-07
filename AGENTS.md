@@ -8,7 +8,7 @@ Native SwiftUI macOS 15+ menu bar audio recorder, part of the Worklog suite.
 - Keep capture buffers bounded and write audio incrementally to disk.
 - Preserve source recordings when export fails or is cancelled. Trim is a reversible metadata edit; never destructively cut the source CAF files. Playback and both exports must honor the same saved bounds.
 - For code changes, check `swift build`, `scripts/test.sh`, and `scripts/package-app.sh` after integration. Require an explicit executed test count; plain `swift test` can miss Swift Testing under standalone CLT.
-- Avoid recording actual user audio during automated verification.
+- Avoid recording actual user audio during automated verification. Use the fake capture/presenter and injected monotonic clock for reminder tests. A silence reminder never auto-stops an ignored recording; preserve the agreed Keep/Stop behavior.
 - Do not modify the sibling agent-dashboard repository.
 
 ## Start here

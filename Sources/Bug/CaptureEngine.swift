@@ -2,6 +2,13 @@ import AVFoundation
 import CoreMedia
 import ScreenCaptureKit
 
+protocol AudioCapturing: AnyObject {
+    var onLevel: ((Float) -> Void)? { get set }
+    var onFailure: ((Error) -> Void)? { get set }
+    func start(directory: URL, includeMicrophone: Bool) async throws
+    func stop() async throws -> CaptureResult
+}
+
 /// Recoverable sources are system.caf and (if requested) microphone.caf inside directory.
 /// Float32 linear PCM CAF, system 48 kHz stereo; microphone native rate/channel count.
 /// Both tracks start at a common host-clock epoch, including leading/intermediate/trailing silence.
@@ -32,7 +39,7 @@ enum CaptureError: LocalizedError {
 }
 
 /// Callback properties are safe to replace while capturing; callbacks execute off-main.
-final class CaptureEngine: @unchecked Sendable {
+final class CaptureEngine: AudioCapturing, @unchecked Sendable {
     private let callbacks = CaptureCallbacks()
     private let lifecycle = CaptureLifecycle()
     var onLevel: ((Float) -> Void)? {

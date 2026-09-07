@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-07** against the v0.2.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-07** against the v0.3.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -19,16 +19,18 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `CaptureEngine.swift` | ScreenCaptureKit configuration, permissions, lifecycle actor, bounded callback delivery, recovery |
 | `CapturePCMWriter.swift` | Float32 CAF writes, timestamp alignment, silence padding and readable-track salvage |
 | `AudioExporter.swift` | Streaming resampling/mixing, peak scan, WAV serialization, destination protection and atomic commit |
+| `SilenceMonitor.swift` | Deterministic silence timer, settings options and stale-reminder IDs |
+| `SilenceReminderPresenter.swift` | Independent nonmodal AppKit reminder panel and SwiftUI content |
 | `AudioTrimmer.swift` | Conservative boundary scan and persistent 48 kHz trim range |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.2.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.3.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
 `RecorderStore.Phase` is `idle → starting → recording → stopping → idle`. Start failures return to idle with an error. Controls disable repeated start/stop and microphone changes while busy. The store handles a capture failure arriving during startup, and attempts to finalize recoverable audio when interrupted while recording.
 
-The menu bar recording symbol persists while the panel is closed. A 50 ms timer updates elapsed time and a fixed 64-level waveform history. The engine reports RMS at most about 20 times/second; levels older than 200 ms become silence. The displayed elapsed clock begins after startup succeeds; source alignment uses the earlier host-clock capture epoch.
+The menu bar recording symbol persists while the panel is closed. A 50 ms timer registered in the main run loop's common modes updates elapsed time and a fixed 64-level waveform history. The engine reports RMS at most about 20 times/second; levels older than 200 ms become silence. The displayed elapsed clock begins after startup succeeds; source alignment uses the earlier host-clock capture epoch.
 
 Starting capture stops preview playback. Preview is disabled during capture and uses a temporary mixed WAV plus `AVAudioPlayer`. Quit is blocked while capture is starting/running/stopping or a Trim analysis or export/save dialog is active. The microphone preference is stored under `includeMicrophone` in UserDefaults. Login at startup uses `SMAppService.mainApp` and macOS approval state.
 
@@ -76,6 +78,18 @@ Export runs in a detached utility task with cancellation forwarding. Tracks must
 WAV is little-endian stereo 24-bit PCM in classic RIFF, with a 4 GiB limit (about 4.14 hours). MP3 uses bundled LAME 3.100, CBR 320 kbps, 48 kHz joint stereo, quality 2, normalized float input. MP3 has encoder delay/padding and no gapless Xing/LAME header. WAV quantization rounds without dither.
 
 Source equality, symlinks, and hard-link aliases are checked before writing and before committing. Output is written to a hidden same-directory staging file and renamed atomically after synchronization and a cancellation check. Errors/cancellation before commit preserve sources and an existing destination. A crash can leave the staging file; cancellation after commit cannot undo the completed export.
+
+## Silence reminder contract
+
+`SilenceReminderDelay` has raw values 0 (Off), 15, 30 (default), and 60 seconds. The store persists `silenceReminderDelay` in UserDefaults. Missing/invalid values fall back to 30; stored zero remains Off.
+
+`SilenceMonitor` is a pure state machine driven by an injected monotonic clock (production: `ProcessInfo.systemUptime`). It starts only after capture startup succeeds. An independent timer calls `tick`, so zero PCM and completely missing audio callbacks both count as silence. The existing live meter combines recent system and microphone RMS without phase cancellation; finite levels at or above 0.001 (-60 dBFS RMS) reset activity. Noise above the threshold counts as audio. No requirement for a previously heard signal exists: initial and later silence both trigger.
+
+A deadline creates one UUID-tagged pending reminder. Ticks while pending do not generate more windows. Keep Recording validates that UUID and restarts a full interval. Resumed audio clears the pending reminder and resets the activity clock. Setting changes clear the prompt and start a fresh interval; Off suppresses reminders. Stop/start clear monitor state. Stale callbacks cannot keep or stop a later recording.
+
+`SilenceReminderPresenter` owns an independent `NSPanel`, not a SwiftUI alert attached to the menu bar view. The titled floating panel joins Spaces, supports full-screen auxiliary placement, does not hide on deactivation, and is presented without a blocking modal run loop. It has **Keep Recording** (default keyboard action) and **Stop Recording** buttons, with no close control; ignoring it continues recording. The normal store Stop path closes the panel before finalization. Resume, Off, changed delay, manual Stop, and handled recording failures also dismiss it.
+
+`AudioCapturing` and `SilenceReminderPresenting` protocols, the injected clock, and a disabled timer permit isolated store tests with synthetic files and fake panels. These tests validate action routing and lifecycle; actual macOS window visibility across Spaces/full-screen remains a live acceptance check. This feature is a reminder only: it does not add automatic stop, a storage quota, or recording retention.
 
 ## Trim contract
 

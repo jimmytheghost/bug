@@ -1,6 +1,6 @@
 # Hands-on acceptance
 
-**Status: all live checks below are pending as of 2026-09-07.** Add date, macOS/device details, result, and any issue reference when completing a check. User approval of appearance is not a substitute for these checks.
+**Status: the checklist remains pending as of 2026-09-07. The user reported a forgotten recording producing over 1 GB of silence, but has not supplied the individual results below.** Add date, macOS/device details, result, and any issue reference when completing a check. User approval of appearance is not a substitute for these checks.
 
 Automated tests use synthetic samples. These checks require the user's macOS permissions and actual audio sources; do not mark them passed based on compilation alone.
 
@@ -26,5 +26,18 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Change Trim padding, Undo, and Trim again. Check that existing edits do not change just from changing the setting.
 - [ ] Check all-silent, short, continuously audible, very quiet, and noisy recordings. No-op results should be clear; use Undo if detection cuts too much.
 - [ ] Include microphone speech before/after system audio and confirm it remains in the trimmed result. Test long-file processing and a metadata write failure without risking real recordings.
+
+## Silence reminder · v0.3.0
+
+- [ ] With default settings, start capture and leave the source silent. Close the menu bar panel, switch to another app, and confirm a standalone reminder appears after about 30 seconds.
+- [ ] Check 15 seconds and 1 minute. Confirm Off never prompts, including after relaunch.
+- [ ] Click Keep Recording; confirm capture continues uninterrupted and a new full silent interval is needed for another reminder.
+- [ ] Ignore the reminder for several intervals. Confirm recording continues and no duplicate windows appear.
+- [ ] Click Stop Recording in the popup. Confirm the recording is finalized and available in the library with the same behavior as ordinary Stop.
+- [ ] Play system audio, then become silent; confirm later silence prompts. Include the microphone, speak while the system is silent, and confirm that also resets the clock.
+- [ ] Start audio while the reminder is visible. Confirm it dismisses automatically and reappears only after a new silent interval.
+- [ ] Change the delay while recording and while a reminder is visible; confirm a fresh interval. Select Off and confirm immediate dismissal.
+- [ ] Test manual Stop, a new session, permission failure, and capture interruption; old popup actions must not affect a new recording.
+- [ ] Check reminder visibility and button focus on another Space and over a full-screen app. Confirm recording remains responsive while the popup is open.
 
 Capture is never started automatically by app launch or by tests.

@@ -14,6 +14,13 @@ final class RecorderStore: ObservableObject {
     @Published var trimPadding: Double {
         didSet { preferences.set(trimPadding, forKey: "trimPadding") }
     }
+    @Published var silenceReminderDelay: SilenceReminderDelay {
+        didSet {
+            preferences.set(silenceReminderDelay.rawValue, forKey: "silenceReminderDelay")
+            silenceMonitor.configure(silenceReminderDelay, at: monotonicTime())
+            reminderPresenter.dismiss()
+        }
+    }
     @Published private(set) var recordings: [Recording] = []
     @Published private(set) var levels: [Float] = Array(repeating: 0, count: 64)
     @Published private(set) var elapsed: TimeInterval = 0
@@ -25,7 +32,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var trimmingID: UUID?
 
     private var library: RecordingLibrary?
-    private let engine = CaptureEngine()
+    private let engine: any AudioCapturing
     private let exporter = AudioExporter()
     private var sessionID: UUID?
     private var startedAt: Date?
@@ -37,16 +44,26 @@ final class RecorderStore: ObservableObject {
     private var latestLevelAt = Date.distantPast
     private var failedWhileStarting = false
     private let preferences: UserDefaults
+    private let reminderPresenter: any SilenceReminderPresenting
+    private let monotonicTime: () -> TimeInterval
+    private var silenceMonitor = SilenceMonitor()
 
     var isBusy: Bool { phase != .idle || trimmingID != nil }
     var canQuit: Bool { !isBusy && exportingID == nil }
     var canTrim: Bool { !isBusy && exportingID == nil }
 
-    init(library: RecordingLibrary? = nil, preferences: UserDefaults = .standard, startTimer: Bool = true) {
+    init(library: RecordingLibrary? = nil, preferences: UserDefaults = .standard, startTimer: Bool = true,
+         engine: any AudioCapturing = CaptureEngine(), reminderPresenter: (any SilenceReminderPresenting)? = nil,
+         monotonicTime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
         self.preferences = preferences
+        self.engine = engine
+        self.reminderPresenter = reminderPresenter ?? SilenceReminderPresenter()
+        self.monotonicTime = monotonicTime
         includeMicrophone = preferences.bool(forKey: "includeMicrophone")
         let padding = preferences.object(forKey: "trimPadding") as? Double ?? 0.5
         trimPadding = padding.isFinite && (0...2).contains(padding) ? padding : 0.5
+        silenceReminderDelay = SilenceReminderDelay(rawValue: preferences.object(forKey: "silenceReminderDelay") as? Int ?? 30) ?? .thirtySeconds
+        silenceMonitor.configure(silenceReminderDelay, at: monotonicTime())
         do {
             let library = try library ?? RecordingLibrary()
             self.library = library
@@ -54,9 +71,7 @@ final class RecorderStore: ObservableObject {
         } catch { errorMessage = "Could not open the recording library: \(error.localizedDescription)" }
         engine.onLevel = { [weak self] level in
             Task { @MainActor [weak self] in
-                guard let self, self.phase == .recording else { return }
-                self.latestLevel = min(1, max(0, level))
-                self.latestLevelAt = Date()
+                self?.receiveCaptureLevel(level)
             }
         }
         engine.onFailure = { [weak self] error in
@@ -67,17 +82,13 @@ final class RecorderStore: ObservableObject {
                 if self.phase == .recording { await self.stop() }
             }
         }
-        if startTimer { timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if self.phase == .recording, let startedAt = self.startedAt {
-                    self.elapsed = Date().timeIntervalSince(startedAt)
-                    self.levels.removeFirst()
-                    self.levels.append(Date().timeIntervalSince(self.latestLevelAt) < 0.2 ? self.latestLevel : 0)
-                }
-                if self.playingID != nil, self.player?.isPlaying != true { self.stopPlayback() }
+        if startTimer {
+            let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in self?.processMeterTick() }
             }
-        } }
+            self.timer = timer
+            RunLoop.main.add(timer, forMode: .common)
+        }
     }
 
     deinit { timer?.invalidate() }
@@ -86,6 +97,8 @@ final class RecorderStore: ObservableObject {
         guard !isBusy, let library else { return }
         stopPlayback()
         phase = .starting
+        silenceMonitor.stop()
+        reminderPresenter.dismiss()
         failedWhileStarting = false
         errorMessage = nil
         notice = nil
@@ -98,9 +111,12 @@ final class RecorderStore: ObservableObject {
             try await engine.start(directory: directory, includeMicrophone: includeMicrophone)
             startedAt = Date()
             phase = .recording
+            silenceMonitor.start(at: monotonicTime())
             if failedWhileStarting { await stop() }
         } catch {
             phase = .idle
+            silenceMonitor.stop()
+            reminderPresenter.dismiss()
             sessionID = nil
             errorMessage = "Could not start recording: \(error.localizedDescription)"
         }
@@ -109,6 +125,8 @@ final class RecorderStore: ObservableObject {
     func stop() async {
         guard phase == .recording, let id = sessionID, let library else { return }
         phase = .stopping
+        silenceMonitor.stop()
+        reminderPresenter.dismiss()
         defer { phase = .idle; sessionID = nil; startedAt = nil }
         do {
             let result = try await engine.stop()
@@ -124,6 +142,35 @@ final class RecorderStore: ObservableObject {
         } catch {
             errorMessage = "Could not finalize recording: \(error.localizedDescription) Audio files remain in the library folder."
         }
+    }
+
+    /// Also called by deterministic tests; no dependency on the popover being open.
+    func processMeterTick() {
+        if phase == .recording, let startedAt {
+            elapsed = Date().timeIntervalSince(startedAt)
+            levels.removeFirst()
+            levels.append(Date().timeIntervalSince(latestLevelAt) < 0.2 ? latestLevel : 0)
+            if let id = silenceMonitor.tick(at: monotonicTime()) {
+                reminderPresenter.show(delay: silenceReminderDelay, keepRecording: { [weak self] in
+                    guard let self, self.phase == .recording,
+                          self.silenceMonitor.keepRecording(reminder: id, at: self.monotonicTime()) else { return }
+                    self.reminderPresenter.dismiss()
+                }, stopRecording: { [weak self] in
+                    guard let self, self.phase == .recording, self.silenceMonitor.pendingReminder == id else { return }
+                    await self.stop()
+                })
+            }
+        }
+        if playingID != nil, player?.isPlaying != true { stopPlayback() }
+    }
+
+    func receiveCaptureLevel(_ level: Float) {
+        guard phase == .recording else { return }
+        latestLevel = level.isFinite ? min(1, max(0, level)) : 0
+        latestLevelAt = Date()
+        let hadReminder = silenceMonitor.pendingReminder != nil
+        silenceMonitor.observe(level: level, at: monotonicTime())
+        if hadReminder && silenceMonitor.pendingReminder == nil { reminderPresenter.dismiss() }
     }
 
     func export(_ recording: Recording, format: AudioExportFormat) async {

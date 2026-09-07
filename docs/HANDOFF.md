@@ -1,24 +1,24 @@
 # Agent handoff
 
-Last updated: **2026-09-07**. Version **0.2.0**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
+Last updated: **2026-09-07**. Version **0.3.0**. This is the current-state entry point; [ARCHITECTURE.md](ARCHITECTURE.md) is the implementation canon.
 
 ## Where we left off
 
-Bug's first implementation is complete and committed as `f468070` (`Build Bug native menu bar audio recorder`). It was pushed to the private [jimmytheghost/bug](https://github.com/jimmytheghost/bug) repository. The default branch is `main`, tracking `origin/main`. The later v0.2.0 change adds Trim/Undo; use `git log` for the current revision.
+Bug's first implementation is complete and committed as `f468070` (`Build Bug native menu bar audio recorder`). It was pushed to the private [jimmytheghost/bug](https://github.com/jimmytheghost/bug) repository. The default branch is `main`, tracking `origin/main`. v0.2.0 added Trim/Undo (`28cf6cd`); v0.3.0 adds silence reminders. Use `git log` for the current revision.
 
-The user confirmed system audio with an optional microphone, a small local library with WAV/MP3 export, and macOS personal use first. They approved the appearance and requested private GitHub hosting and complete handoff documentation. They then approved a feature named **Trim**, immediate application with Undo, and 0.5-second default padding. That feature is implemented in v0.2.0. They have not reported results from a real recording session.
+The user confirmed system audio with an optional microphone, a small local library with WAV/MP3 export, and macOS personal use first. They approved the appearance and requested private GitHub hosting and complete handoff documentation. They then approved a feature named **Trim**, immediate application with Undo, and 0.5-second default padding. That feature is implemented in v0.2.0. They reported forgetting an active recording and finding over 1 GB of silence. This motivated the v0.3.0 silence reminder. They approved initial/later silence detection, 30 seconds by default with 15/60/Off options, either source as activity, Keep Recording/Stop Recording, and continued recording if ignored. This report does not establish audio signal quality or full acceptance coverage.
 
 The local checkout used for development is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The design reference is the sibling `/Users/jimmytheghost/Dropbox/_Personal Projects/agent-dashboard` (Worklog). That app was inspected, not modified. Bug has no runtime dependency on that checkout.
 
-The local artifact is v0.2.0 at `dist/Bug.app` (approximately 3.3 MB); bundle ID `com.jimmyweber.bug`. During the Trim update the old running bundle was preserved at `dist/previous/Bug-0.1.0-b7ef1ec8.app`, and the new package was moved into place without terminating the app. The user must quit/reopen to load it. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
+The local artifact is v0.3.0 at `dist/Bug.app`; bundle ID `com.jimmyweber.bug`. Previous bundles are preserved under ignored `dist/previous/` when updating the local package; no active recording is terminated. The user must quit/reopen to load an update. **Do not assume the running app matches the latest build:** inspect current state, and never terminate a potentially active recording to refresh a build. No installer, GitHub release, CI workflow, or remote build service is configured.
 
 ## Verified baseline
 
 - Apple Silicon, macOS 26.6.2, Swift 6.3.3 Command Line Tools.
 - Debug build, release bundle, and ad-hoc signature verification passed.
-- 33 executed Swift Testing tests in 4 suites passed, including real MP3 encode/decode, Trim bounds, persistent Undo, and source preservation using synthetic audio.
+- 46 executed Swift Testing tests in 6 suites passed, including real MP3 encode/decode, Trim bounds, persistent Undo, source preservation, and silence reminder timing/actions using synthetic audio.
 - Offscreen AppKit/SwiftUI layout inspected; desktop automation timed out.
-- No live user audio was captured. Real capture, permissions, FaceTime, device changes, sleep, and launch at login remain unverified.
+- Development tests captured no live user audio. The user reported a long accidental silent recording; live signal quality, permission flows, FaceTime, device changes, sleep, reminder window behavior, and launch at login still need acceptance checks.
 
 See [VALIDATION.md](VALIDATION.md) for evidence and [ACCEPTANCE.md](ACCEPTANCE.md) for pending tests. macOS 15 is the deployment target, not a separately tested host; Intel has not been tested.
 
@@ -43,7 +43,7 @@ Packaging builds the host architecture. The encoder script supports `ARCHS="arm6
 
 ### Offscreen layout preview
 
-The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--trim-fixture`, `--trimmed-fixture`, or `--settings` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
+The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--trim-fixture`, `--trimmed-fixture`, `--settings`, or `--silence-reminder` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
 
 On the original Apple Silicon host:
 
@@ -53,6 +53,7 @@ swiftc -parse-as-library -target arm64-apple-macosx15.0 \
   Sources/Bug/AudioExporter.swift Sources/Bug/AudioTrimmer.swift Sources/Bug/ExportMP3Encoder.swift \
   Sources/Bug/CaptureEngine.swift Sources/Bug/CapturePCMWriter.swift \
   Sources/Bug/RecordingLibrary.swift Sources/Bug/RecorderStore.swift \
+  Sources/Bug/SilenceMonitor.swift Sources/Bug/SilenceReminderPresenter.swift \
   Sources/Bug/BugMenuView.swift scripts/render-preview.swift \
   -o .build/qa/render-preview
 .build/qa/render-preview .build/qa/bug-panel.png --trim-fixture
@@ -74,6 +75,14 @@ The feature is named **Trim** throughout the UI. Each saved recording has a visi
 Original CAF files are immutable. Only optional `trimRange` metadata is saved; playback and both export formats pass this range to the exporter. Legacy recordings decode as untrimmed. No-op and analysis/save errors preserve the recording. The 33-test result covers the user's 8-second/10-second example, interior pauses, stereo and microphone/resampling behavior, silent/short/noisy tracks, invalid bounds, cancellation, persistent Undo/rename, and metadata write failures.
 
 Detection uses a fixed -60 dBFS sample-peak threshold and is conservative, not semantic: noise may prevent trimming and very quiet fades may be excluded beyond padding. Live listening/interaction acceptance is still pending. See [ARCHITECTURE.md](ARCHITECTURE.md#trim-contract) for exact contracts.
+
+## Silence reminder handoff
+
+v0.3.0 adds **Silence reminder** under gear settings: Off, 15 seconds, 30 seconds (default), and 1 minute. It is active from the start of actual capture and after any later silence. Either source's live RMS can reset the timer. The standalone nonmodal popup works independently of the menu bar view and does not block recording.
+
+**Keep Recording** resets the timer, **Stop Recording** calls normal stop/save, and ignoring keeps recording. One reminder stays pending rather than creating repeated windows. Audio resuming dismisses it automatically. Off, setting changes, manual Stop, and recording failures dismiss it as well. Token checks fence callbacks from previous reminders/sessions. Timing uses a monotonic clock and ticks even when no audio buffers arrive.
+
+13 new synthetic state/store tests bring the suite to 46. They require no wall-clock waits and no actual recording or popup. Offscreen popup/settings layout was checked; live window placement, full-screen visibility, real source detection, and listening remain pending. Background noise above -60 dBFS RMS counts as activity; the reminder is not a recording-size cap. See [ARCHITECTURE.md](ARCHITECTURE.md#silence-reminder-contract).
 
 ## Known gaps and operational caveats
 

@@ -1,6 +1,16 @@
 # Validation · 2026-09-07
 
-## Current release · v0.2.0 Trim
+## Current release · v0.3.0 Silence reminder
+
+- The user reported an accidentally forgotten recording producing over 1 GB of silence. This is the motivation for the reminder; it does not establish live signal quality or all earlier acceptance results.
+- `swift build` and release packaging passed. v0.3.0 Info.plist and `codesign --verify --deep --strict` passed. The previous bundle was preserved under ignored `dist/previous/`, with no termination of the running app. Quit/reopen is required to load the new code.
+- `scripts/test.sh`: **46 executed tests in 6 suites passed**, including all 33 prior tests and 13 new reminder state/store tests.
+- New tests use an injected clock, fake capture with tiny synthetic CAF files, and a fake presenter. They cover 15/30/60-second deadlines, initial/no-buffer and later silence, Off/idle, quiet and invalid levels, ignored reminders, Keep resetting the clock, automatic dismissal on resumed audio, live setting changes, preference persistence, stale actions after restart, normal Stop/save exactly once, and start/stop error cleanup.
+- The store reminder tests instantiate no menu bar view, verifying that timer/action routing does not depend on the popover being open. They do not verify actual macOS popup visibility.
+- Isolated offscreen renders of the actual popup content and gear settings were visually inspected. No live audio was captured by these tests and no real reminder was shown to the user during verification.
+- Documentation links and diff formatting checked. Real source/microphone detection, popup button interaction, visibility over other apps/Spaces/full-screen, and remaining recording acceptance require the checklist in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Previous release · v0.2.0 Trim
 
 - `swift build` passed on the same Apple Silicon/macOS/Swift host documented below.
 - `scripts/test.sh`: **33 executed tests in 4 suites passed**, including 12 Trim tests and all 21 existing tests.

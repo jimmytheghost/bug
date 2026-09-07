@@ -23,9 +23,14 @@ struct BugPreview {
             _ = try library.createSession(id: recording.id)
             try library.save(recording)
         }
-        let view = BugMenuView(store: RecorderStore(library: library, preferences: preferences, startTimer: false),
-                               showingSettings: CommandLine.arguments.contains("--settings"))
-            .environment(\.colorScheme, .dark)
+        let content: AnyView
+        if CommandLine.arguments.contains("--silence-reminder") {
+            content = AnyView(SilenceReminderView(delay: .thirtySeconds, keepRecording: {}, stopRecording: {}))
+        } else {
+            content = AnyView(BugMenuView(store: RecorderStore(library: library, preferences: preferences, startTimer: false),
+                                           showingSettings: CommandLine.arguments.contains("--settings")))
+        }
+        let view = content.environment(\.colorScheme, .dark)
         let hosting = NSHostingView(rootView: view)
         hosting.appearance = NSAppearance(named: .darkAqua)
         hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)

@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.2.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.3.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. The initial implementation is committed as `f468070`. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The current implementation passed 33 synthetic tests, including Trim, and release/signature checks. Live recording, permission flows, and real-device behavior have not been verified. User feedback was positive, but did not explicitly confirm those tests.
+The current implementation passed 46 synthetic tests, including Trim and silence reminders, and release/signature checks. The user reported a forgotten recording that produced over 1 GB of silence. Live signal quality, permission flows, and the new reminder's real-device behavior still need acceptance testing.
 
 ## What it does
 
@@ -17,6 +17,7 @@ The current implementation passed 33 synthetic tests, including Trim, and releas
 - Saves stopped recordings to a local library with playback, rename, and Move to Trash.
 - Exports 48 kHz / 24-bit stereo WAV or 320 kbps stereo MP3.
 - Offers optional **Trim** with immediate application, persistent Undo, and 0.5-second head/tail padding by default.
+- Offers a configurable silence reminder before the source starts and during later silent stretches.
 - Offers launch at login. No accounts, uploads, or background web service.
 
 ## Build and run
@@ -42,6 +43,18 @@ Click the ladybug in the menu bar, optionally enable **Include microphone**, the
 Use the recording's **…** menu to export WAV or MP3, rename it, or move its source files to Trash. The play button previews the combined audio; it prepares a temporary WAV first, so long recordings may take time. Original recordings stay in the library after export.
 
 Recordings live in `~/Library/Application Support/Bug/Recordings/`. The **Library folder** button opens this directory. Each session has lossless source CAF tracks and JSON metadata. WAV/MP3 are created only on export. Audio is written incrementally; uncompressed stereo sources use roughly 1.4 GB per hour, plus microphone audio. The library does not automatically delete recordings. Interrupted sessions without finalized JSON metadata remain on disk but are not automatically imported into the library; see [known gaps](docs/HANDOFF.md#known-gaps-and-operational-caveats).
+
+## Silence reminder
+
+In the gear settings, **Silence reminder** offers **Off**, **15 seconds**, **30 seconds** (default), and **1 minute**. The preference is saved across launches. Monitoring starts once capture is running, after any permission prompts, and checks for silence both at the beginning and later in the recording.
+
+When the interval passes without detected audio, Bug opens a separate **Still waiting for audio?** popup, even if the menu bar panel is closed:
+
+- **Keep Recording** closes the reminder and restarts the full silence interval.
+- **Stop Recording** uses the normal Stop/save flow to preserve what was captured.
+- Ignoring the reminder continues recording; duplicate reminders do not pile up.
+
+Either system audio or an enabled microphone counts as activity. If audio resumes, the stale reminder closes automatically and Bug watches for the next silent stretch. Changing the delay while recording starts a fresh interval; selecting Off dismisses a pending reminder. The setting does not mute the source, trim audio, or impose a maximum recording size. Background noise above the detector's -60 dBFS RMS threshold also counts as activity.
 
 ## Trim
 

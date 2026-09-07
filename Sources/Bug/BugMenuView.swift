@@ -245,6 +245,17 @@ struct BugMenuView: View {
                 .onAppear { loginEnabled = SMAppService.mainApp.status == .enabled }
             Divider()
             VStack(alignment: .leading, spacing: 6) {
+                Picker("Silence reminder", selection: $store.silenceReminderDelay) {
+                    ForEach(SilenceReminderDelay.allCases) { delay in
+                        Text(delay.title).tag(delay)
+                    }
+                }
+                .font(.callout)
+                Text("Ask whether to keep recording when no audio is detected. Either system audio or your included microphone resets the timer. Ignoring the reminder keeps recording.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Divider()
+            VStack(alignment: .leading, spacing: 6) {
                 Picker("Trim padding", selection: $store.trimPadding) {
                     Text("None").tag(0.0)
                     Text("0.25 seconds").tag(0.25)
@@ -267,7 +278,7 @@ struct BugMenuView: View {
             Button("Audio recording permissions…") { store.openPermissions() }
             Button("Open recording library") { store.revealLibrary() }
             messages
-            Text("Bug 0.2.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.3.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }
