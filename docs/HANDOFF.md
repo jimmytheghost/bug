@@ -1,13 +1,13 @@
 # Agent handoff
 
-Last updated: **2026-09-08, in-panel deletion confirmation**. Current version: **0.5.2**, build **11**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-09-08, precision Custom Trim**. Current source version: **0.6.0**, build **12**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
 
-- v0.5.2 keeps per-recording deletion confirmation inside the Bug panel so deleting one track does not close the menu. Use `git log -1` for the latest committed revision.
+- v0.6.0 adds press-and-hold 10× head/tail precision to the inline Custom Trim editor. Use `git log -1` for the latest committed revision.
 - Private repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. GitHub privacy was rechecked for this handoff.
-- Latest artifact: `dist/updates/v0.5.2/Bug.app`. v0.5.2 was installed, verified, and reopened at `~/Applications/Bug.app` through `scripts/install-app.py`; never launch the staging copy.
-- Latest executed validation: **58 tests in 8 suites passed** and the in-panel confirmation was rendered at the real 360-point width. No live audio or personal recording was used during automated validation.
+- Latest artifact is `dist/updates/v0.6.0/Bug.app`; deliver only through `scripts/install-app.py` and never launch the staging copy.
+- Latest executed validation: **59 tests in 8 suites passed**. The overview plus forced 10× HEAD and TAIL states were rendered at the real 360-point width. No live audio or personal recording was used during automated validation.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - The user confirmed v0.5.1 row deletion succeeds and no longer recurs, but the standalone alert dismisses the menu-bar panel. v0.5.2 replaces that alert with a store-backed overlay inside the existing panel. Cancel and Move to Trash clear the pending request before returning to the still-open recording list. Hands-on confirmation remains pending.
 - No background work, pending subagent patch, or automatic task needs collection. The user is wrapping up for the day.
@@ -22,6 +22,8 @@ Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional 
 
 **Custom Trim** is available from the slider button on each recording and from its **…** menu. While preparing, the recorder card shows progress; it then replaces the live System Audio card with the complete recording waveform. Mint left/right handles select the retained region. Click/drag seeks, Play/Pause and ±5-second controls audition only the proposed range, Save writes the shared trim metadata, and Cancel preserves the previous edit. Opening an edited recording starts from its saved bounds; saving the full waveform clears the trim. The source CAF files remain unchanged, and playback/WAV/MP3 exports use the saved result.
 
+For precision on long recordings, hold either handle still for about 0.25 seconds. A fixed 10× window appears: HEAD pins the active start to the far left and TAIL pins the active stop to the far right. Continue holding while dragging; the waveform moves beneath the fixed boundary. Release returns to the full overview. Immediate movement remains a coarse drag. Head release seeks preview to the new start, and preview/export remain clamped to the selected bounds.
+
 **Silence reminder** covers initial and later silence: Off/15/30/60 seconds, default 30. Either included source counts. Keep Recording resets the interval, Stop saves, ignoring continues, and resumed audio dismisses the independent reminder panel. This is not a storage cap.
 
 **Library** shows saved recordings and per-row sizes. The header total includes all regular files in the root, including unfinished sessions and hidden metadata. Refresh occurs on panel appearance, application activation, and every five seconds while the view task runs. A zero-recording library may show a few KB from Finder metadata. Row Trash moves the complete UUID source folder to macOS Trash after confirmation.
@@ -34,7 +36,7 @@ Per-recording Trash uses an in-panel confirmation overlay backed by `pendingReco
 
 The user clarified that permission failed **after enabling it**. Logs confirmed the saved v0.3.0 identity was still used for running v0.4.4. Our old workflow (launch each versioned staging build, ask the user to reapprove) left stale grants behind.
 
-The current canonical installation is `~/Applications/Bug.app` v0.5.2. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
+The canonical installation is `~/Applications/Bug.app` v0.6.0 build 12. It was installed through the canonical installer and reopened from that path. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
 
 **Every delivered update must use `python3 scripts/install-app.py <staged Bug.app>`.** It requires Bug to be quit, stages/verifies the bundle, resets only Bug ScreenCapture when the designated requirement changes, backs up the old app, and installs at the canonical path. Reopen that copy and let the user approve it. Never launch directly from staged version folders. Read [PERMISSIONS.md](PERMISSIONS.md) for diagnostics and explicit same-build repair.
 
@@ -42,8 +44,8 @@ The user accepts normal reapproval on updates. A signing certificate is optional
 
 ## Next session
 
-1. Ask the user to delete several disposable recordings in v0.5.2 and verify the Bug panel stays open after each Cancel and Move to Trash action.
-2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for hands-on Custom Trim dragging, bounded audition, persistence, and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
+1. Ask the user to verify the 0.25-second hold threshold, pinned 10× HEAD/TAIL windows, release-to-overview behavior, and exact audition bounds on a long recording.
+2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for remaining Custom Trim persistence and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve private visibility and unrelated work.
 
@@ -93,7 +95,7 @@ AppKit hosting is intentional: a pure SwiftUI `ImageRenderer` rendered native sw
 - **One corrupt metadata file can fail the whole library load.** The loader rejects bad JSON, mismatched IDs, and non-basename source paths. It does not quarantine a bad entry or verify all source files exist when listing. Missing audio is reported when playback/export tries to open it.
 - **Long recordings use disk space.** Float32 stereo system audio is about 1.4 GB/hour plus native microphone audio. Silence is written in bounded chunks, not sparse files. There is no quota, free-space preflight, automatic retention, or rotation.
 - **Playback prepares the selected mixed WAV.** It can be slow and needs extra temporary disk space; it shares WAV's roughly 4.14-hour limit. MP3 export can still work above that WAV limit. A force quit may leave a temporary preview or export staging file.
-- **Custom Trim also prepares an untrimmed mixed WAV for audition.** Its waveform analysis remains fixed at 720 peaks, but editor preparation needs temporary disk space and shares the same roughly 4.14-hour WAV limit. Save/Cancel removes the preview during normal operation.
+- **Custom Trim also prepares an untrimmed mixed WAV for audition.** Its waveform analysis remains bounded at 7,200 detail peaks (at most 720 in the overview), but editor preparation needs temporary disk space and shares the same roughly 4.14-hour WAV limit. Save/Cancel removes the preview during normal operation.
 - **Capture requires an available display filter and permissions.** No video is saved, but ScreenCaptureKit receives and discards screen callbacks. Protected sources may be unavailable. Multichannel microphones beyond mono/stereo are rejected during ingestion; device format changes interrupt capture.
 - **Export progress is indeterminate.** The UI has a spinner and a cancellable save dialog, but no explicit cancel/progress control once encoding begins. The exporter supports task cancellation internally.
 - **Local signing only.** No Developer ID, notarization, sandbox distribution configuration, auto-update, or verified Intel/universal release. Launch-at-login behavior still needs packaged-app testing.

@@ -20,17 +20,20 @@ struct BugPreview {
         let hasTrimFixture = CommandLine.arguments.contains("--trim-fixture")
             || CommandLine.arguments.contains("--trimmed-fixture")
             || CommandLine.arguments.contains("--custom-trim")
+            || CommandLine.arguments.contains("--custom-trim-head-zoom")
+            || CommandLine.arguments.contains("--custom-trim-tail-zoom")
             || CommandLine.arguments.contains("--delete-confirmation")
         var fixtureRecording: Recording?
         if hasTrimFixture {
             var recording = Recording(id: UUID(), createdAt: Date(timeIntervalSince1970: 1_788_804_000),
-                title: "Afternoon live stream", duration: CommandLine.arguments.contains("--custom-trim") ? 12 : 28,
+                title: "Afternoon live stream",
+                duration: CommandLine.arguments.contains(where: { $0.hasPrefix("--custom-trim") }) ? 12 : 28,
                 systemFilename: "system.caf", microphoneFilename: nil)
             if CommandLine.arguments.contains("--trimmed-fixture") {
                 recording.trimRange = AudioTrimRange(startFrame: 360_000, endFrame: 888_000)
             }
             let session = try library.createSession(id: recording.id)
-            if CommandLine.arguments.contains("--custom-trim") {
+            if CommandLine.arguments.contains(where: { $0.hasPrefix("--custom-trim") }) {
                 try writeSyntheticTrack(to: session.appendingPathComponent("system.caf"), seconds: recording.duration)
             }
             try library.save(recording)
@@ -42,7 +45,7 @@ struct BugPreview {
         } else {
             let store = RecorderStore(library: library, preferences: preferences, startTimer: false)
             previewStore = store
-            if CommandLine.arguments.contains("--custom-trim"), let fixtureRecording {
+            if CommandLine.arguments.contains(where: { $0.hasPrefix("--custom-trim") }), let fixtureRecording {
                 await store.customTrim(fixtureRecording)
             }
             if CommandLine.arguments.contains("--delete-confirmation"), let fixtureRecording {
@@ -51,8 +54,11 @@ struct BugPreview {
             if CommandLine.arguments.contains("--deleted-fixture") {
                 store.notice = "Moved 13 session folders to Trash. Exported copies are unchanged."
             }
+            let zoomEdge: CustomTrimEdge? = CommandLine.arguments.contains("--custom-trim-head-zoom") ? .start
+                : CommandLine.arguments.contains("--custom-trim-tail-zoom") ? .end : nil
             content = AnyView(BugMenuView(store: store,
-                                           showingSettings: CommandLine.arguments.contains("--settings")))
+                                          showingSettings: CommandLine.arguments.contains("--settings"),
+                                          customTrimPreviewZoomEdge: zoomEdge))
         }
         let view = content.environment(\.colorScheme, .dark)
         let hosting = NSHostingView(rootView: view)

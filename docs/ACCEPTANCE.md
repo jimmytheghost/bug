@@ -31,6 +31,9 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 
 - [ ] Click the slider button on a saved recording. Confirm the live System Audio card is replaced in-place by that recording's complete waveform; no separate editor window should appear.
 - [ ] Drag the left and right mint handles. Confirm they cannot cross, the displayed start/end and kept duration update, and clicking or dragging inside the waveform moves the playhead without moving a handle.
+- [ ] On a long recording, press and hold the left handle without moving for about 0.25 seconds. Confirm a **10× HEAD** view appears with the trim point pinned at the far left; keep holding and drag both directions, then release and confirm the overview returns with playback starting at that exact boundary.
+- [ ] Repeat with the right handle. Confirm **10× TAIL** pins the stop point at the far right, the waveform moves beneath it while held, release restores the overview, and playback stops at that boundary.
+- [ ] Start moving a handle immediately without holding. Confirm ordinary coarse drag still works and does not unexpectedly enter 10× mode.
 - [ ] Use Play/Pause and the five-second skip controls. Confirm audition starts at the playhead, stays inside the proposed bounds, and stops at the right handle.
 - [ ] Cancel after changing both handles. Confirm the prior trim state, displayed duration, playback, and exports remain unchanged.
 - [ ] Save a manual selection, then play and export WAV and MP3. Confirm all three use matching start/end bounds and the edit survives relaunch and rename.

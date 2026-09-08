@@ -481,6 +481,13 @@ final class RecorderStore: ObservableObject {
         customTrimState = state
     }
 
+    func pauseCustomTrimPlayback() {
+        guard var state = customTrimState else { return }
+        customTrimPlayer?.pause()
+        state.isPlaying = false
+        customTrimState = state
+    }
+
     func saveCustomTrim() {
         guard let state = customTrimState, trimmingID == state.recordingID, let library,
               var current = recordings.first(where: { $0.id == state.recordingID }) else { return }

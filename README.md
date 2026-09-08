@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.5.2**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. Use `git log` for the latest implementation checkpoint. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.6.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. Use `git log` for the latest implementation checkpoint. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The user confirmed Delete All succeeds in v0.4.3 and per-recording deletion succeeds in v0.5.1. The current implementation passed 58 synthetic tests in 8 suites, including automatic Trim, Custom Trim, in-panel deletion confirmation, exports, and silence reminders. Live signal quality, permission flows, Custom Trim interaction, and reminder behavior still need hands-on acceptance testing.
+The user confirmed Delete All succeeds in v0.4.3 and per-recording deletion succeeds in v0.5.1. The current implementation passed 59 synthetic tests in 8 suites, including automatic Trim, precision Custom Trim, in-panel deletion confirmation, exports, and silence reminders. Live signal quality, permission flows, Custom Trim interaction, and reminder behavior still need hands-on acceptance testing.
 
 ## What it does
 
@@ -17,7 +17,7 @@ The user confirmed Delete All succeeds in v0.4.3 and per-recording deletion succ
 - Saves stopped recordings to a local library with playback, rename, and Move to Trash.
 - Exports 48 kHz / 24-bit stereo WAV or 320 kbps stereo MP3.
 - Offers optional **Trim** with immediate application, persistent Undo, and 0.5-second head/tail padding by default.
-- Offers **Custom Trim** with a full-recording waveform, draggable head/tail bounds, preview controls, Save, and Cancel.
+- Offers **Custom Trim** with a full-recording waveform, press-and-hold 10× head/tail precision, preview controls, Save, and Cancel.
 - Offers a configurable silence reminder before the source starts and during later silent stretches.
 - Offers launch at login. No accounts, uploads, or background web service.
 
@@ -77,7 +77,7 @@ Playback and subsequent WAV/MP3 exports use the trim. Original CAF files stay un
 
 In Settings, **Trim padding** offers none, 0.25, 0.5, 1, or 2 seconds at each end. It affects the next Trim operation; Undo first to reapply a different padding to an already trimmed recording. Padding is limited to available audio and never inserts new silence.
 
-For manual control, click the slider button on a recording or choose **Custom Trim…** from its **…** menu. Bug replaces the live recorder card with the entire recording waveform. Drag the mint left and right handles to choose what to keep; click or drag inside the waveform to seek, use the play and five-second skip controls to preview, then choose **Save** or **Cancel**. Opening Custom Trim on an already trimmed recording starts from its saved bounds. Saving replaces those bounds; selecting the full recording clears the trim. Playback and later WAV/MP3 exports use the saved selection, while Undo still restores the complete source.
+For manual control, click the slider button on a recording or choose **Custom Trim…** from its **…** menu. Bug replaces the live recorder card with the entire recording waveform. Drag the mint left and right handles to choose what to keep. For fine control, press and hold either handle for about 0.25 seconds: Bug zooms to 10× while pinning the head to the far left or the tail to the far right. Keep holding and drag so the waveform moves beneath that fixed edge, then release to return to the overview. The left edge is the exact playback/export start and the right edge is the exact stop. Click or drag elsewhere to seek, use Play and the five-second skip controls to preview, then choose **Save** or **Cancel**. Opening Custom Trim on an already trimmed recording starts from its saved bounds. Saving replaces those bounds; selecting the full recording clears the trim. Playback and later WAV/MP3 exports use the saved selection, while Undo still restores the complete source.
 
 Detection uses a conservative fixed -60 dBFS threshold across both channels of each source. Quiet fades below that threshold may be treated as silence; background noise above it may prevent a trim. It detects audio boundaries, not the start/end of a specific song: other audible material before or after a song is retained. Always use Undo if the result is not what you want.
 

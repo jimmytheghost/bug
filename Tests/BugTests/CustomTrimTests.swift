@@ -53,6 +53,14 @@ final class CustomTrimTests {
         #expect(waveform[7] > 0.39)
     }
 
+    @Test func tenTimesZoomUsesPinnedEdgeWindowsAndFineDragScale() {
+        #expect(abs(CustomTrimZoom.adjustedFraction(anchor: 0.5, translation: 30, width: 300) - 0.51) < 0.000_001)
+        let samples = (0..<100).map(Float.init)
+        #expect(CustomTrimZoom.detailSamples(samples, boundary: 0.2, edge: .start) == Array(samples[20..<30]))
+        #expect(CustomTrimZoom.detailSamples(samples, boundary: 0.8, edge: .end) == Array(samples[70..<80]))
+        #expect(CustomTrimZoom.overviewSamples(samples, maximumCount: 10) == [9, 19, 29, 39, 49, 59, 69, 79, 89, 99])
+    }
+
     @Test @MainActor func customTrimSavesMetadataWithoutChangingSource() async throws {
         let source = try track("source", seconds: 2) { frame in frame < 48_000 ? 0.2 : -0.2 }
         let library = try RecordingLibrary(root: root.appendingPathComponent("library"))

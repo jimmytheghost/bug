@@ -8,10 +8,13 @@ struct BugMenuView: View {
     @State private var renaming: Recording?
     @State private var newTitle = ""
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
+    private let customTrimPreviewZoomEdge: CustomTrimEdge?
 
-    init(store: RecorderStore, showingSettings: Bool = false) {
+    init(store: RecorderStore, showingSettings: Bool = false,
+         customTrimPreviewZoomEdge: CustomTrimEdge? = nil) {
         _store = ObservedObject(wrappedValue: store)
         _showingSettings = State(initialValue: showingSettings)
+        self.customTrimPreviewZoomEdge = customTrimPreviewZoomEdge
     }
 
     var body: some View {
@@ -217,9 +220,13 @@ struct BugMenuView: View {
                 playhead: state.playheadFraction,
                 setStart: store.setCustomTrimStart,
                 setEnd: store.setCustomTrimEnd,
-                seek: store.seekCustomTrim
+                seek: store.seekCustomTrim,
+                beginBoundaryEdit: store.pauseCustomTrimPlayback,
+                initialZoomEdge: customTrimPreviewZoomEdge
             )
             .frame(height: 64)
+            Text("Hold a mint handle for 10× precision.")
+                .font(.caption2).foregroundStyle(.tertiary)
             HStack {
                 Text(RecorderStore.durationLabel(Double(state.selection.startFrame) / 48_000))
                 Spacer()
@@ -416,7 +423,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.5.2 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.6.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

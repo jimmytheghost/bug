@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-08** against the v0.5.2 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-08** against the v0.6.0 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -25,7 +25,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `CustomTrimEditor.swift` | Bounded full-recording waveform, frame selection model, and inline drag-handle view |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.5.2, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.6.0, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -114,9 +114,11 @@ During Trim, capture/playback/other trims and exports are blocked, and the targe
 
 ### Custom Trim
 
-Custom Trim reuses the same `AudioTrimRange` metadata and export contract as automatic Trim. Opening it replaces the live recorder card in the 360-point menu panel with an inline editor; it does not open a second window. `AudioWaveformAnalyzer` streams the original system and optional microphone tracks through `ExportTrack`, merges per-frame peaks into a fixed 720-bucket overview, and never retains the recording's full PCM in memory. A temporary untrimmed mixed WAV supports auditioning and is removed on Save or Cancel. Consequently Custom Trim preview shares the existing classic-WAV size and temporary-disk limits.
+Custom Trim reuses the same `AudioTrimRange` metadata and export contract as automatic Trim. Opening it replaces the live recorder card in the 360-point menu panel with an inline editor; it does not open a second window. `AudioWaveformAnalyzer` streams the original system and optional microphone tracks through `ExportTrack`, merges per-frame peaks into a fixed 7,200-bucket detail model, and never retains the recording's full PCM in memory. The overview reduces this to at most 720 displayed peaks. Starting a boundary gesture pauses audition playback. A temporary untrimmed mixed WAV supports auditioning and is removed on Save or Cancel. Consequently Custom Trim preview shares the existing classic-WAV size and temporary-disk limits.
 
 `CustomTrimSelection` stores draggable bounds as frames on the common 48 kHz timeline and enforces a 10 ms minimum selection. The editor starts at the full recording or the currently saved trim, supports click/drag seeking, five-second skips, and playback limited to the proposed bounds. Save atomically replaces `trimRange`; choosing the entire recording clears it. Cancel and metadata-write failures preserve the previous bounds. Neither action modifies source CAF bytes. While preparation or editing is active, capture, export, deletion, other trims, and Quit remain disabled.
+
+An ordinary handle press schedules precision mode after 250 ms. Movement beyond 8 points before that deadline cancels magnification and preserves coarse dragging. Once active, `CustomTrimZoom` displays one tenth of the recording: the head boundary is pinned at the left edge and shows following audio; the tail boundary is pinned at the right edge and shows preceding audio. Horizontal translation changes the boundary at one tenth of overview scale while waveform samples move beneath the fixed edge. Mouse-up returns to the overview. Head release seeks auditioning to the new start; playback always clamps to the saved head/tail range.
 
 This is fixed-threshold boundary detection, not semantic song/speech detection or noise removal. Above-threshold noise stays; extremely quiet material below the threshold may be excluded beyond the retained padding. Existing exports are never retroactively edited. The original source storage size is unchanged.
 

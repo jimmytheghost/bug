@@ -1,6 +1,13 @@
 # Validation · 2026-09-08
 
-Current baseline: v0.5.2, 58 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.6.0, 59 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Precision Custom Trim · v0.6.0
+
+- `swift build` passed and `scripts/test.sh` executed **59 tests in 8 suites**, all passing. The new test verifies fixed 10× drag scaling, head/tail detail-window sampling around pinned edges, and bounded overview reduction.
+- The waveform analyzer remains streaming and increases only its fixed peak summary from 720 to 7,200 values. The full recording PCM is never retained. Immediate movement preserves coarse dragging; a stationary 250 ms hold enables fine mode; mouse-up exits it; head release seeks to the new start.
+- Isolated synthetic full-panel renders of forced **10× HEAD** and **10× TAIL** states were visually checked at 360 points. Both pin the mint boundary to the specified edge, display the magnified waveform and state badge, retain controls and time labels, and avoid clipping. Timed mouse behavior and exact listening bounds remain hands-on checks.
+- Release packaging passed at `dist/updates/v0.6.0/Bug.app`; Info.plist reports version 0.6.0/build 12 and deep/strict signature verification passed. Bug quit through its protected termination path, the installer performed the scoped ScreenCapture reset required by the changed ad-hoc identity, and the verified app reopened from `~/Applications/Bug.app`. A boundary gesture also explicitly pauses any active Custom Trim preview before editing begins.
 
 ## In-panel row deletion confirmation · v0.5.2
 
