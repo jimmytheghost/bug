@@ -1,6 +1,14 @@
-# Validation · 2026-09-07
+# Validation · 2026-09-08
 
-Current baseline: v0.5.0, 56 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.5.1, 57 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Independent row deletion confirmation · v0.5.1
+
+- The user supplied a screenshot and reported that v0.5.0's per-recording SwiftUI Trash alert closed with the menu and reappeared on every reopen. This matches the MenuBarExtra lifecycle failure previously seen with Delete All.
+- Removed the popover-bound deletion state and routed both row Trash entry points through a standalone store-owned NSAlert. Cancel is the default keyboard action; only the current library entry can be deleted; duplicate confirmation requests are suppressed.
+- `swift build` passed and `scripts/test.sh` executed **57 tests in 8 suites**, all passing. The new parameterized test covers Cancel, confirmation, current recording identity, duplicate suppression, and injected recoverable Trash without personal recordings.
+- Release packaging passed at `dist/updates/v0.5.1/Bug.app`; Info.plist reports version 0.5.1/build 10 and deep/strict signature verification passed. Bug quit through its protected application termination path, the installer performed the scoped ScreenCapture reset required by the changed ad-hoc identity, and the verified app reopened from `~/Applications/Bug.app`.
+- No live capture or personal recording deletion was performed. The user still needs to confirm Cancel and Move to Trash no longer recur in the real menu UI and reapprove capture permission.
 
 ## Inline Custom Trim · v0.5.0
 

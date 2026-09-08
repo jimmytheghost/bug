@@ -1,6 +1,6 @@
 # Hands-on acceptance
 
-**Status: partially verified as of 2026-09-07.** The user confirmed the v0.4.3 Delete All success path and supplied a screenshot showing 13 sessions moved with zero recordings remaining. Broader checks below remain pending. Add date, macOS/device details, and evidence when completing a check; approval of appearance does not establish recording quality.
+**Status: partially verified as of 2026-09-08.** The user confirmed the v0.4.3 Delete All success path and supplied a screenshot showing 13 sessions moved with zero recordings remaining. They later reproduced a recurring per-recording Trash alert in v0.5.0; v0.5.1 is installed with a native confirmation repair, pending hands-on verification. Add date, macOS/device details, and evidence when completing a check; approval of appearance does not establish recording quality.
 
 Automated tests use synthetic samples. These checks require the user's macOS permissions and actual audio sources; do not mark them passed based on compilation alone.
 
@@ -57,6 +57,7 @@ Capture is never started automatically by app launch or by tests.
 
 - [ ] Stop any active capture, quit the old Bug, and open `~/Applications/Bug.app`. Reapprove capture if needed.
 - [ ] Verify visible Trash buttons on short/long titles and trimmed/microphone recordings; cancel once, then confirm deletion on a disposable recording.
+- [ ] **v0.5.1 regression:** after Cancel and after Move to Trash, close and reopen the menu several times. Confirm the row alert does not return and Bug remains running from `~/Applications/Bug.app`.
 - [ ] Confirm the row and totals update, exported copies outside its folder stay intact, and the source folder can be restored from macOS Trash.
 - [ ] Move a disposable UUID recording folder out in Finder and restore it. Verify refresh with the panel open (within about five seconds), after reopening, and when returning from Finder.
 - [ ] Check row sizes and the full folder total, including an unfinished session. Verify Trim changes duration without reducing source storage.

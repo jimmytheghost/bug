@@ -1,15 +1,15 @@
 # Agent handoff
 
-Last updated: **2026-09-07, Custom Trim checkpoint**. Current source/staged version: **0.5.0**, build **9**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-09-08, row-deletion repair**. Current version: **0.5.1**, build **10**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
 
-- The v0.5.0 implementation adds inline Custom Trim. Use `git log -1` for the latest committed revision.
+- v0.5.1 repairs the recurring per-recording Trash confirmation while retaining the v0.5.0 inline Custom Trim feature. Use `git log -1` for the latest committed revision.
 - Private repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. GitHub privacy was rechecked for this handoff.
-- Latest artifact: `dist/updates/v0.5.0/Bug.app`. At packaging time the canonical installed v0.4.4 app was still running, so it was deliberately not terminated or replaced. Install only with `scripts/install-app.py` after the user stops any recording and quits Bug.
-- Latest executed validation: **56 tests in 8 suites passed**, debug build, release packaging, and deep/strict ad-hoc signature verification. The inline Custom Trim state was rendered and visually checked at the real 360-point width.
+- Latest artifact: `dist/updates/v0.5.1/Bug.app`. The previous staging-launched v0.5.0 process quit through the app's protected termination path; v0.5.1 was installed and reopened at the canonical `~/Applications/Bug.app` path through `scripts/install-app.py`.
+- Latest executed validation: **57 tests in 8 suites passed**, debug build, release packaging, deep/strict ad-hoc signature verification, and canonical installation verification. No live audio or personal recording was used during automated validation.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
-- v0.5.0 keeps automatic Trim and adds Custom Trim with a full-recording waveform, draggable head/tail handles, bounded audition, Save, and Cancel. Hands-on dragging/listening/export comparison remains unverified.
+- The user reported that v0.5.0's row Trash alert repeatedly returned whenever the menu reopened. v0.5.1 removes that popover-bound SwiftUI alert and uses a standalone store-owned NSAlert with Cancel as the default action and duplicate suppression. Hands-on confirmation of the repaired interaction remains pending.
 - No background work, pending subagent patch, or automatic task needs collection. The user is wrapping up for the day.
 
 The checkout is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The sibling `agent-dashboard` (Worklog) is a design reference only and must not be modified.
@@ -26,15 +26,15 @@ Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional 
 
 **Library** shows saved recordings and per-row sizes. The header total includes all regular files in the root, including unfinished sessions and hidden metadata. Refresh occurs on panel appearance, application activation, and every five seconds while the view task runs. A zero-recording library may show a few KB from Finder metadata. Row Trash moves the complete UUID source folder to macOS Trash after confirmation.
 
-**Delete All** confirms the UUID session-folder count, including saved, empty, and unfinished sessions. It excludes unrelated files/symlinks and uses only the confirmed snapshot. An empty-only library can still be cleared. It is disabled during capture/Trim/export and when no session folders exist. Preview stops before deletion. Partial failures are reported and the list/totals refresh. Exports outside source folders remain untouched. Empty macOS Trash separately to reclaim disk space.
+Both per-recording Trash and Delete All confirmations are standalone AppKit alerts owned by the store, independent of MenuBarExtra. Their Cancel buttons are the default keyboard action, reentrant requests are ignored, and no SwiftUI deletion binding survives after the popover closes. Do not restore popover-attached deletion alerts: both variants caused recurring/disappearing confirmation behavior in user testing.
 
-Bulk confirmation uses a standalone NSAlert owned by the store, independent of MenuBarExtra. Cancel is the default keyboard action; reentrant requests are ignored. Do not restore the old popover-attached SwiftUI bulk alert: the user reported that it disappeared and returned without deleting.
+**Delete All** confirms the UUID session-folder count, including saved, empty, and unfinished sessions. It excludes unrelated files/symlinks and uses only the confirmed snapshot. An empty-only library can still be cleared. It is disabled during capture/Trim/export and when no session folders exist. Preview stops before deletion. Partial failures are reported and the list/totals refresh. Exports outside source folders remain untouched. Empty macOS Trash separately to reclaim disk space.
 
 ## Build identity and safe updates
 
 The user clarified that permission failed **after enabling it**. Logs confirmed the saved v0.3.0 identity was still used for running v0.4.4. Our old workflow (launch each versioned staging build, ask the user to reapprove) left stale grants behind.
 
-Current installation is `~/Applications/Bug.app` (v0.4.4, unchanged binary). Bug was gracefully quit, its ScreenCapture grant reset, and the app installed/reopened there. Archived repo bundles were unregistered from Launch Services but retained. Runtime recovery awaits the user's reapproval/result; do not infer success from installation alone.
+Current installation is `~/Applications/Bug.app` (v0.5.1). The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed, then verified and reopened the canonical app. The user must approve capture again and restart if macOS requests it; installation alone does not prove runtime authorization.
 
 **Every delivered update must use `python3 scripts/install-app.py <staged Bug.app>`.** It requires Bug to be quit, stages/verifies the bundle, resets only Bug ScreenCapture when the designated requirement changes, backs up the old app, and installs at the canonical path. Reopen that copy and let the user approve it. Never launch directly from staged version folders. Read [PERMISSIONS.md](PERMISSIONS.md) for diagnostics and explicit same-build repair.
 
@@ -42,8 +42,8 @@ The user accepts normal reapproval on updates. A signing certificate is optional
 
 ## Next session
 
-1. After the user stops any capture and quits the running app, install `dist/updates/v0.5.0/Bug.app` with `python3 scripts/install-app.py dist/updates/v0.5.0/Bug.app`; do not launch the staged copy.
-2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for hands-on Custom Trim dragging, bounded audition, persistence, and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery/Cancel scenarios.
+1. Ask the user to retry Cancel and Move to Trash on a disposable recording in the installed v0.5.1 app; verify the confirmation does not recur after reopening the menu.
+2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for hands-on Custom Trim dragging, bounded audition, persistence, and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve private visibility and unrelated work.
 

@@ -7,7 +7,6 @@ struct BugMenuView: View {
     @State private var showingSettings = false
     @State private var renaming: Recording?
     @State private var newTitle = ""
-    @State private var deleting: Recording?
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
 
     init(store: RecorderStore, showingSettings: Bool = false) {
@@ -49,11 +48,6 @@ struct BugMenuView: View {
             Button("Cancel", role: .cancel) { renaming = nil }
             Button("Save") { if let renaming { store.rename(renaming, to: newTitle) }; renaming = nil }
         }
-        .alert("Move recording to Trash?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
-            Button("Cancel", role: .cancel) { deleting = nil }
-            Button("Move to Trash", role: .destructive) { if let deleting { store.delete(deleting) }; deleting = nil }
-        } message: { Text("You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash.") }
-
     }
 
     private var header: some View {
@@ -313,7 +307,7 @@ struct BugMenuView: View {
             .disabled(!store.canTrim)
             .help("Custom Trim")
             .accessibilityLabel("Custom Trim \(recording.title)")
-            Button { deleting = recording } label: {
+            Button { store.requestDelete(recording) } label: {
                 Image(systemName: "trash").frame(width: 22, height: 28).contentShape(Rectangle())
             }
             .buttonStyle(.plain).foregroundStyle(.secondary)
@@ -335,7 +329,7 @@ struct BugMenuView: View {
                     .disabled(!store.canTrim)
                 Button("Rename…") { newTitle = recording.title; renaming = recording }
                     .disabled(store.trimmingID == recording.id)
-                Button("Move to Trash…", role: .destructive) { deleting = recording }
+                Button("Move to Trash…", role: .destructive) { store.requestDelete(recording) }
                     .disabled(store.exportingID == recording.id || store.trimmingID == recording.id)
             } label: { Image(systemName: "ellipsis").frame(width: 20, height: 28) }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
@@ -394,7 +388,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.5.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.5.1 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

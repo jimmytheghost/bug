@@ -8,7 +8,7 @@ macOS personal use first. Native menu bar app matching Worklog. Record all captu
 
 Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFoundation. Main actor store owns user-visible state. Capture runs on a serial sample queue and writes timestamp-aligned system and optional microphone tracks to disk. Export mixes tracks offline, preserving source files. Library lives in Application Support/Bug; capture sessions use unique directories. UI retains errors and protects active capture when quitting.
 
-## Current milestone status · 2026-09-07
+## Current milestone status · 2026-09-08
 
 - [x] Confirm scope with user: system audio plus optional microphone, persistent library, macOS personal use first.
 - [x] Scaffold native Swift package and Worklog-style interface.
@@ -29,6 +29,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 
 - [x] v0.4.4: restore footer breathing room and intrinsic panel sizing after deletion; user confirmed v0.4.3 Delete All works.
 - [x] v0.5.0: add inline Custom Trim with bounded waveform analysis, draggable start/end handles, audition controls, Save/Cancel, and shared playback/export bounds; 56 tests in 8 suites pass.
+- [x] v0.5.1: replace the recurring popover-bound row Trash alert with an independent native confirmation; 57 tests in 8 suites pass and the canonical app is installed.
 - [ ] Verify live capture after [canonical installation and scoped permission repair](PERMISSIONS.md), including the next changed build. Stable certificate signing is optional future work; the user accepts normal reapproval.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.

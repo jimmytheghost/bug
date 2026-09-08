@@ -150,4 +150,32 @@ struct LibraryStorageTests {
         #expect((trashed != nil) == approved)
     }
 
+    @MainActor @Test(arguments: [false, true])
+    func recordingConfirmationRoutesOnceWithoutPopoverState(approved: Bool) throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let library = try RecordingLibrary(root: root)
+        let recording = try fixture(library)
+        let suite = "BugRecordingConfirmationTests-\(UUID())"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+        var trashed: URL?
+        defer { if let trashed { try? FileManager.default.removeItem(at: trashed) } }
+        let store = RecorderStore(library: library, preferences: preferences, startTimer: false,
+                                  trashRecording: { id in trashed = try library.deleteSession(id) })
+        var confirmationCount = 0
+        store.requestDelete(recording) { current in
+            confirmationCount += 1
+            #expect(current == recording)
+            store.requestDelete(recording) { _ in
+                Issue.record("Duplicate recording confirmation must be suppressed")
+                return true
+            }
+            return approved
+        }
+        #expect(confirmationCount == 1)
+        #expect(store.recordings.isEmpty == approved)
+        #expect((trashed != nil) == approved)
+    }
+
 }

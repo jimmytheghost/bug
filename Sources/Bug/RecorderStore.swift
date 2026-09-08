@@ -38,6 +38,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var customTrimState: CustomTrimEditorState?
 
     private var confirmingDeletion = false
+    private var confirmingRecordingDeletion = false
     private var library: RecordingLibrary?
     private let trashRecording: ((UUID) throws -> Void)?
     private let engine: any AudioCapturing
@@ -262,11 +263,40 @@ final class RecorderStore: ObservableObject {
         guard exportingID != recording.id, trimmingID != recording.id, let library else { return }
         if playingID == recording.id || preparingPlaybackID == recording.id { stopPlayback() }
         do {
-            try library.delete(recording)
+            if let trashRecording { try trashRecording(recording.id) }
+            else { try library.delete(recording) }
             try reloadLibrary()
             notice = "Moved to Trash. Exported copies are unchanged."
         }
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
+    }
+
+    /// A standalone AppKit alert survives the MenuBarExtra popover closing.
+    /// The old popover-attached SwiftUI alert could retain its binding and reopen forever.
+    func requestDelete(_ recording: Recording, confirm: ((Recording) -> Bool)? = nil) {
+        guard !confirmingRecordingDeletion else { return }
+        refreshLibrary()
+        guard exportingID != recording.id, trimmingID != recording.id,
+              let current = recordings.first(where: { $0.id == recording.id }) else { return }
+        confirmingRecordingDeletion = true
+        defer { confirmingRecordingDeletion = false }
+        let approved: Bool
+        if let confirm {
+            approved = confirm(current)
+        } else {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "Move recording to Trash?"
+            alert.informativeText = "You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash."
+            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Move to Trash")
+            alert.buttons[0].keyEquivalent = "\r"
+            alert.buttons[1].keyEquivalent = ""
+            alert.window.level = .floating
+            NSApp.activate(ignoringOtherApps: true)
+            approved = alert.runModal() == .alertSecondButtonReturn
+        }
+        if approved { delete(current) }
     }
 
     /// The application-modal dialog owns its lifetime independently of MenuBarExtra.
