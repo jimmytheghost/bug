@@ -36,6 +36,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var trimmingID: UUID?
     @Published private(set) var preparingCustomTrimID: UUID?
     @Published private(set) var customTrimState: CustomTrimEditorState?
+    @Published private(set) var pendingRecordingDeletion: Recording?
 
     private var confirmingDeletion = false
     private var confirmingRecordingDeletion = false
@@ -271,32 +272,30 @@ final class RecorderStore: ObservableObject {
         catch { errorMessage = "Could not move recording to Trash: \(error.localizedDescription)" }
     }
 
-    /// A standalone AppKit alert survives the MenuBarExtra popover closing.
-    /// The old popover-attached SwiftUI alert could retain its binding and reopen forever.
+    /// UI requests remain inside the MenuBarExtra panel so confirmation does not
+    /// dismiss it. Tests can inject a synchronous confirmation decision.
     func requestDelete(_ recording: Recording, confirm: ((Recording) -> Bool)? = nil) {
-        guard !confirmingRecordingDeletion else { return }
+        guard pendingRecordingDeletion == nil, !confirmingRecordingDeletion else { return }
         refreshLibrary()
         guard exportingID != recording.id, trimmingID != recording.id,
               let current = recordings.first(where: { $0.id == recording.id }) else { return }
-        confirmingRecordingDeletion = true
-        defer { confirmingRecordingDeletion = false }
-        let approved: Bool
         if let confirm {
-            approved = confirm(current)
+            confirmingRecordingDeletion = true
+            defer { confirmingRecordingDeletion = false }
+            if confirm(current) { delete(current) }
         } else {
-            let alert = NSAlert()
-            alert.alertStyle = .warning
-            alert.messageText = "Move recording to Trash?"
-            alert.informativeText = "You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash."
-            alert.addButton(withTitle: "Cancel")
-            alert.addButton(withTitle: "Move to Trash")
-            alert.buttons[0].keyEquivalent = "\r"
-            alert.buttons[1].keyEquivalent = ""
-            alert.window.level = .floating
-            NSApp.activate(ignoringOtherApps: true)
-            approved = alert.runModal() == .alertSecondButtonReturn
+            pendingRecordingDeletion = current
         }
-        if approved { delete(current) }
+    }
+
+    func cancelRecordingDeletion() {
+        pendingRecordingDeletion = nil
+    }
+
+    func confirmRecordingDeletion() {
+        guard let recording = pendingRecordingDeletion else { return }
+        pendingRecordingDeletion = nil
+        delete(recording)
     }
 
     /// The application-modal dialog owns its lifetime independently of MenuBarExtra.
@@ -554,6 +553,9 @@ final class RecorderStore: ObservableObject {
         guard let library else { return }
         librarySessionIDs = try library.sessionIDs()
         let current = try library.load()
+        if let id = pendingRecordingDeletion?.id, !current.contains(where: { $0.id == id }) {
+            pendingRecordingDeletion = nil
+        }
         if let id = customTrimState?.recordingID, !current.contains(where: { $0.id == id }) {
             closeCustomTrim()
         }

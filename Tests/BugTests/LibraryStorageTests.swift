@@ -178,4 +178,30 @@ struct LibraryStorageTests {
         #expect((trashed != nil) == approved)
     }
 
+    @MainActor @Test func inPanelRecordingConfirmationKeepsOnePendingRequest() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let library = try RecordingLibrary(root: root)
+        let first = try fixture(library)
+        let second = try fixture(library)
+        var trashed: URL?
+        defer { if let trashed { try? FileManager.default.removeItem(at: trashed) } }
+        let store = RecorderStore(library: library, startTimer: false,
+                                  trashRecording: { id in trashed = try library.deleteSession(id) })
+
+        store.requestDelete(first)
+        #expect(store.pendingRecordingDeletion == first)
+        store.requestDelete(second)
+        #expect(store.pendingRecordingDeletion == first)
+        store.cancelRecordingDeletion()
+        #expect(store.pendingRecordingDeletion == nil)
+        #expect(store.recordings.count == 2)
+
+        store.requestDelete(first)
+        store.confirmRecordingDeletion()
+        #expect(store.pendingRecordingDeletion == nil)
+        #expect(store.recordings == [second])
+        #expect(trashed != nil)
+    }
+
 }

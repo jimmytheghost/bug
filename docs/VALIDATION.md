@@ -1,6 +1,14 @@
 # Validation · 2026-09-08
 
-Current baseline: v0.5.1, 57 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.5.2, 58 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## In-panel row deletion confirmation · v0.5.2
+
+- The user confirmed v0.5.1 deletion works but reported that its standalone alert dismisses the Bug panel after each action, requiring another menu-bar click before deleting the next track.
+- Replaced the standalone row alert with a confirmation overlay inside the existing 360-point panel. Store-owned pending state allows only one request, Cancel clears it, and Move to Trash clears it before deletion; neither action changes menu presentation.
+- `swift build` passed and `scripts/test.sh` executed **58 tests in 8 suites**, all passing. The new store test covers pending presentation, duplicate suppression, Cancel, subsequent confirmation, and injected recoverable Trash.
+- The real panel and confirmation overlay were rendered offscreen with a synthetic metadata-only recording. The card, warning copy, dimmed background, Cancel, and destructive action fit without clipping. Rendering does not prove the menu stays open during real clicks; that remains a hands-on check.
+- Release packaging passed at `dist/updates/v0.5.2/Bug.app`; Info.plist reports version 0.5.2/build 11 and deep/strict signature verification passed. Bug quit through its protected termination path, the canonical installer performed the scoped ScreenCapture reset required by the changed ad-hoc identity, and the verified app reopened from `~/Applications/Bug.app`.
 
 ## Independent row deletion confirmation · v0.5.1
 

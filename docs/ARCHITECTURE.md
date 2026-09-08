@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-09-08** against the v0.5.1 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-09-08** against the v0.5.2 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 ## Product and design decisions
 
@@ -25,7 +25,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `CustomTrimEditor.swift` | Bounded full-recording waveform, frame selection model, and inline drag-handle view |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.5.1, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.5.2, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -67,7 +67,7 @@ JSON writes are atomic. Load orders recordings newest first, skips directories w
 
 ## Library storage and refresh
 
-v0.4.0 adds a visible Trash action with recoverable confirmation. Store deletion stops playback/preparation for that entry and refuses deletion during its export or Trim. The whole UUID directory goes to macOS Trash; external exports are unaffected. Emptying Trash is the user's separate action. As of v0.5.1, row confirmation is a standalone store-owned NSAlert rather than a SwiftUI alert attached to MenuBarExtra. Cancel is the default action and a reentrancy guard suppresses duplicate requests, preventing the confirmation state from recurring each time the popover opens.
+v0.4.0 adds a visible Trash action with recoverable confirmation. Store deletion stops playback/preparation for that entry and refuses deletion during its export or Trim. The whole UUID directory goes to macOS Trash; external exports are unaffected. Emptying Trash is the user's separate action. As of v0.5.2, row confirmation is an overlay inside the MenuBarExtra panel backed by one optional store value. A new request is ignored while one is pending; Cancel clears it; confirmation clears it before deletion. This retains the open panel without reviving the recurring SwiftUI alert binding removed in v0.5.1.
 
 `RecordingLibrary.storageBytes(at:)` enumerates regular files using file-size metadata, includes hidden files and unfinished sessions, and skips symlinks. It does not read audio content or persist a size in recording JSON. Per-entry totals count the whole UUID directory; the header counts the entire root. Logical bytes can differ from allocated/reclaimable disk space. Unavailable size reads display “Size unavailable.”
 

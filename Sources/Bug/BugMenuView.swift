@@ -33,6 +33,7 @@ struct BugMenuView: View {
         .fixedSize(horizontal: false, vertical: true)
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.mint)
+        .overlay { recordingDeletionConfirmation }
         .task {
             while !Task.isCancelled {
                 store.refreshLibrary()
@@ -47,6 +48,33 @@ struct BugMenuView: View {
             TextField("Name", text: $newTitle)
             Button("Cancel", role: .cancel) { renaming = nil }
             Button("Save") { if let renaming { store.rename(renaming, to: newTitle) }; renaming = nil }
+        }
+    }
+
+    @ViewBuilder private var recordingDeletionConfirmation: some View {
+        if let recording = store.pendingRecordingDeletion {
+            ZStack {
+                Color.black.opacity(0.42)
+                    .contentShape(Rectangle())
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Move recording to Trash?").font(.headline)
+                    Text(recording.title).font(.callout.weight(.medium)).lineLimit(2)
+                    Text("You can recover the original audio from the Trash. Exported copies stay where you saved them. Disk space is freed when you empty the Trash.")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 8) {
+                        Button("Cancel") { store.cancelRecordingDeletion() }
+                            .keyboardShortcut(.defaultAction)
+                        Spacer()
+                        Button("Move to Trash", role: .destructive) { store.confirmRecordingDeletion() }
+                            .buttonStyle(.borderedProminent).tint(.red)
+                    }
+                }
+                .padding(16)
+                .frame(width: 300)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.16)))
+                .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+            }
         }
     }
 
@@ -388,7 +416,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.5.1 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.5.2 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

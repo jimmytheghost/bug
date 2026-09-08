@@ -20,6 +20,7 @@ struct BugPreview {
         let hasTrimFixture = CommandLine.arguments.contains("--trim-fixture")
             || CommandLine.arguments.contains("--trimmed-fixture")
             || CommandLine.arguments.contains("--custom-trim")
+            || CommandLine.arguments.contains("--delete-confirmation")
         var fixtureRecording: Recording?
         if hasTrimFixture {
             var recording = Recording(id: UUID(), createdAt: Date(timeIntervalSince1970: 1_788_804_000),
@@ -43,6 +44,9 @@ struct BugPreview {
             previewStore = store
             if CommandLine.arguments.contains("--custom-trim"), let fixtureRecording {
                 await store.customTrim(fixtureRecording)
+            }
+            if CommandLine.arguments.contains("--delete-confirmation"), let fixtureRecording {
+                store.requestDelete(fixtureRecording)
             }
             if CommandLine.arguments.contains("--deleted-fixture") {
                 store.notice = "Moved 13 session folders to Trash. Exported copies are unchanged."
