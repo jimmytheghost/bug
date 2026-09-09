@@ -32,6 +32,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] v0.5.1: replace the recurring popover-bound row Trash alert with an independent native confirmation; 57 tests in 8 suites pass and the canonical app is installed.
 - [x] v0.5.2: move row Trash confirmation into a store-backed in-panel overlay so the menu stays open while deleting multiple tracks; 58 tests in 8 suites pass.
 - [x] v0.6.0: add 0.25-second press-and-hold 10× precision for Custom Trim, with pinned head/tail edges, fine drag scaling, and automatic overview return; 59 tests in 8 suites pass.
+- [x] v0.6.1: replace the recurring popover-bound rename alert with a store-backed in-panel editor that keeps the app panel open and refreshes the library; 60 tests in 8 suites pass.
 - [ ] Verify live capture after [canonical installation and scoped permission repair](PERMISSIONS.md), including the next changed build. Stable certificate signing is optional future work; the user accepts normal reapproval.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.

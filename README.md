@@ -4,11 +4,11 @@ A small native macOS menu bar app for catching audio. Designed as a companion to
 
 ## Project status and handoff
 
-Version **0.6.0**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. Use `git log` for the latest implementation checkpoint. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
+Version **0.6.1**, personal-use macOS build. Source is in the private [jimmytheghost/bug repository](https://github.com/jimmytheghost/bug), on `main`. Use `git log` for the latest implementation checkpoint. Build outputs and generated encoder binaries are not committed; build locally using the commands below.
 
 **Start here, future agents:** read [AGENTS.md](AGENTS.md), then [the handoff](docs/HANDOFF.md) and [canonical architecture](docs/ARCHITECTURE.md). The [plan](docs/PLAN.md) records scope and remaining work; [validation](docs/VALIDATION.md) records evidence; [acceptance](docs/ACCEPTANCE.md) lists unverified hands-on checks.
 
-The user confirmed Delete All succeeds in v0.4.3 and per-recording deletion succeeds in v0.5.1. The current implementation passed 59 synthetic tests in 8 suites, including automatic Trim, precision Custom Trim, in-panel deletion confirmation, exports, and silence reminders. Live signal quality, permission flows, Custom Trim interaction, and reminder behavior still need hands-on acceptance testing.
+The user confirmed Delete All succeeds in v0.4.3 and per-recording deletion succeeds in v0.5.1. The current implementation passed 60 synthetic tests in 8 suites, including automatic Trim, precision Custom Trim, in-panel rename/deletion flows, exports, and silence reminders. Live signal quality, permission flows, Custom Trim interaction, and reminder behavior still need hands-on acceptance testing.
 
 ## What it does
 

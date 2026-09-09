@@ -23,6 +23,7 @@ struct BugPreview {
             || CommandLine.arguments.contains("--custom-trim-head-zoom")
             || CommandLine.arguments.contains("--custom-trim-tail-zoom")
             || CommandLine.arguments.contains("--delete-confirmation")
+            || CommandLine.arguments.contains("--rename-confirmation")
         var fixtureRecording: Recording?
         if hasTrimFixture {
             var recording = Recording(id: UUID(), createdAt: Date(timeIntervalSince1970: 1_788_804_000),
@@ -50,6 +51,9 @@ struct BugPreview {
             }
             if CommandLine.arguments.contains("--delete-confirmation"), let fixtureRecording {
                 store.requestDelete(fixtureRecording)
+            }
+            if CommandLine.arguments.contains("--rename-confirmation"), let fixtureRecording {
+                store.requestRename(fixtureRecording)
             }
             if CommandLine.arguments.contains("--deleted-fixture") {
                 store.notice = "Moved 13 session folders to Trash. Exported copies are unchanged."

@@ -5,8 +5,8 @@ import SwiftUI
 struct BugMenuView: View {
     @ObservedObject var store: RecorderStore
     @State private var showingSettings = false
-    @State private var renaming: Recording?
     @State private var newTitle = ""
+    @FocusState private var renameFieldFocused: Bool
     @State private var loginEnabled = SMAppService.mainApp.status == .enabled
     private let customTrimPreviewZoomEdge: CustomTrimEdge?
 
@@ -36,7 +36,7 @@ struct BugMenuView: View {
         .fixedSize(horizontal: false, vertical: true)
         .background(Color(nsColor: .windowBackgroundColor))
         .tint(.mint)
-        .overlay { recordingDeletionConfirmation }
+        .overlay { panelConfirmation }
         .task {
             while !Task.isCancelled {
                 store.refreshLibrary()
@@ -47,14 +47,9 @@ struct BugMenuView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             store.refreshLibrary()
         }
-        .alert("Rename recording", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField("Name", text: $newTitle)
-            Button("Cancel", role: .cancel) { renaming = nil }
-            Button("Save") { if let renaming { store.rename(renaming, to: newTitle) }; renaming = nil }
-        }
     }
 
-    @ViewBuilder private var recordingDeletionConfirmation: some View {
+    @ViewBuilder private var panelConfirmation: some View {
         if let recording = store.pendingRecordingDeletion {
             ZStack {
                 Color.black.opacity(0.42)
@@ -78,7 +73,52 @@ struct BugMenuView: View {
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.16)))
                 .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
             }
+        } else if let recording = store.pendingRecordingRename {
+            ZStack {
+                Color.black.opacity(0.42)
+                    .contentShape(Rectangle())
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Rename recording").font(.headline)
+                    TextField("Name", text: $newTitle)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($renameFieldFocused)
+                        .onSubmit { confirmRename() }
+                    HStack(spacing: 8) {
+                        Button("Cancel") { cancelRename() }
+                            .keyboardShortcut(.cancelAction)
+                        Spacer()
+                        Button("Save") { confirmRename() }
+                            .buttonStyle(.borderedProminent)
+                            .keyboardShortcut(.defaultAction)
+                            .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                .padding(16)
+                .frame(width: 300)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.16)))
+                .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+                .onAppear {
+                    newTitle = recording.title
+                    renameFieldFocused = true
+                }
+            }
         }
+    }
+
+    private func beginRename(_ recording: Recording) {
+        store.requestRename(recording)
+    }
+
+    private func cancelRename() {
+        renameFieldFocused = false
+        store.cancelRecordingRename()
+    }
+
+    private func confirmRename() {
+        guard !newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        renameFieldFocused = false
+        store.confirmRecordingRename(to: newTitle)
     }
 
     private var header: some View {
@@ -362,7 +402,7 @@ struct BugMenuView: View {
                 .disabled(!store.canTrim)
                 Button("Custom Trim…") { Task { await store.customTrim(recording) } }
                     .disabled(!store.canTrim)
-                Button("Rename…") { newTitle = recording.title; renaming = recording }
+                Button("Rename…") { beginRename(recording) }
                     .disabled(store.trimmingID == recording.id)
                 Button("Move to Trash…", role: .destructive) { store.requestDelete(recording) }
                     .disabled(store.exportingID == recording.id || store.trimmingID == recording.id)
@@ -423,7 +463,7 @@ struct BugMenuView: View {
             .help("Move all saved recordings to Trash")
 
             messages
-            Text("Bug 0.6.0 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
+            Text("Bug 0.6.1 · A companion to Worklog").font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(14)
     }

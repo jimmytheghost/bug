@@ -37,6 +37,7 @@ final class RecorderStore: ObservableObject {
     @Published private(set) var preparingCustomTrimID: UUID?
     @Published private(set) var customTrimState: CustomTrimEditorState?
     @Published private(set) var pendingRecordingDeletion: Recording?
+    @Published private(set) var pendingRecordingRename: Recording?
 
     private var confirmingDeletion = false
     private var confirmingRecordingDeletion = false
@@ -258,6 +259,24 @@ final class RecorderStore: ObservableObject {
         updated.title = title
         do { try library.save(updated); try reloadLibrary() }
         catch { errorMessage = "Could not rename recording: \(error.localizedDescription)" }
+    }
+
+    func requestRename(_ recording: Recording) {
+        guard pendingRecordingRename == nil else { return }
+        refreshLibrary()
+        guard trimmingID != recording.id,
+              let current = recordings.first(where: { $0.id == recording.id }) else { return }
+        pendingRecordingRename = current
+    }
+
+    func cancelRecordingRename() {
+        pendingRecordingRename = nil
+    }
+
+    func confirmRecordingRename(to title: String) {
+        guard let recording = pendingRecordingRename else { return }
+        pendingRecordingRename = nil
+        rename(recording, to: title)
     }
 
     func delete(_ recording: Recording) {

@@ -204,4 +204,26 @@ struct LibraryStorageTests {
         #expect(trashed != nil)
     }
 
+    @MainActor @Test func inPanelRenameClearsBeforeRefreshingLibrary() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let library = try RecordingLibrary(root: root)
+        let first = try fixture(library)
+        let second = try fixture(library)
+        let store = RecorderStore(library: library, startTimer: false)
+
+        store.requestRename(first)
+        #expect(store.pendingRecordingRename == first)
+        store.requestRename(second)
+        #expect(store.pendingRecordingRename == first)
+        store.cancelRecordingRename()
+        #expect(store.pendingRecordingRename == nil)
+
+        store.requestRename(first)
+        store.confirmRecordingRename(to: "  Updated title  ")
+        #expect(store.pendingRecordingRename == nil)
+        #expect(store.recordings.first(where: { $0.id == first.id })?.title == "Updated title")
+        #expect(try library.load().first(where: { $0.id == first.id })?.title == "Updated title")
+    }
+
 }

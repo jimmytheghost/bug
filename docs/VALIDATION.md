@@ -1,6 +1,13 @@
 # Validation · 2026-09-08
 
-Current baseline: v0.6.0, 59 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## In-panel rename editor · v0.6.1
+
+- The user reported that saving the MenuBarExtra-bound rename alert dismissed the Bug panel and that the alert returned on reopen. Replaced it with a store-backed editor overlaid inside the existing panel. Save and Cancel clear pending state without dismissing the panel; Save clears it before the atomic metadata write and library reload.
+- `swift build` passed and `scripts/test.sh` executed **60 tests in 8 suites**, all passing. The new test covers duplicate suppression, Cancel, pending-state clearance before completion, trimmed input, immediate in-memory refresh, and persisted metadata.
+- A synthetic full-panel render at the real 360-point width verified the rename field and Cancel/Save actions fit without clipping while the library remains visible underneath. Real click behavior remains a hands-on check.
+- Release packaging passed at `dist/updates/v0.6.1/Bug.app`; Info.plist reports version 0.6.1/build 13 and deep/strict signature verification passed. Bug quit through its protected termination path, the canonical installer performed the scoped ScreenCapture reset required by the changed ad-hoc identity, and the verified app reopened from `~/Applications/Bug.app`.
 
 ## Precision Custom Trim · v0.6.0
 
