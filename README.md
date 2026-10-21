@@ -29,7 +29,7 @@ The app has no accounts, uploads, telemetry, web runtime, or background service.
 
 ## Build it yourself
 
-Current source version: **0.6.1**. This preparation is for sharing source; no downloadable binary release is published.
+Current source version: **0.6.1**. Source is publicly available; no downloadable binary release is published.
 
 Requires **macOS 15 or newer**, Xcode Command Line Tools with a macOS 15+ SDK, and Swift Testing. Previous implementation validation used Swift 6.3.3 on Apple Silicon with Swift 5 language mode and a Swift 5.9 package manifest. Intel, a universal app, and a separate macOS 15 host have not been verified.
 
@@ -86,7 +86,7 @@ Start with [AGENTS.md](AGENTS.md), then [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - `Sources/Bug/AudioExporter.swift`, `AudioTrimmer.swift`, and `CustomTrimEditor.swift`: exports and reversible edits.
 - `Tests/BugTests/`: synthetic audio and isolated reminder tests, without recording user audio.
 
-After code changes, run `swift build`, `./scripts/test.sh`, and `./scripts/package-app.sh "$PWD/.build/check-package"`. Require an explicit executed test count: plain `swift test` can miss Swift Testing under standalone Command Line Tools. See the [plan](docs/PLAN.md) for scope and [release preparation](docs/RELEASE.md) for publication status.
+After code changes, run `swift build`, `./scripts/test.sh`, and `./scripts/package-app.sh "$PWD/.build/check-package"`. Require an explicit executed test count: plain `swift test` can miss Swift Testing under standalone Command Line Tools. See the [plan](docs/PLAN.md) for scope and [publication status](docs/RELEASE.md) for publication status.
 
 ## License
 

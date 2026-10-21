@@ -2,6 +2,12 @@
 
 Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
 
+## Public source publication · 2026-10-20
+
+The user explicitly authorized making `jimmytheghost/bug` public. GitHub CLI changed visibility to PUBLIC and an authenticated metadata check confirmed it. Separate unauthenticated HTTP requests returned 200 for the GitHub repository API (with `private: false`), repository page, raw README, and both README PNGs. Current instructions and publication docs were synchronized with public visibility; historical private-state evidence remains dated below. The source toolkit’s visibility was not changed.
+
+Checked local Markdown links, image paths, code fences, and diff whitespace. This pass changes repository visibility and documentation only; no binary release, app installation, live capture, or test-suite rerun was performed. Previous synthetic test evidence remains unchanged.
+
 ## README interface imagery · 2026-10-20
 
 Compiled the existing offscreen preview helper against current v0.6.1 sources, then rendered an idle recorder and Custom Trim with a synthetic 12-second stereo signal in an isolated temporary library/preferences suite. Visually inspected both PNGs at full resolution: complete panel edges, readable labels/controls, and no personal information. README displays each at the app’s 360-point width and explicitly identifies synthetic/offscreen provenance. See [images/README.md](images/README.md) for dimensions and regeneration.

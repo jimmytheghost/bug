@@ -1,6 +1,6 @@
-# Public source release preparation
+# Public source publication
 
-Prepared **2026-10-20** for source version **0.6.1**, build **13**. The repository remains **private** at [jimmytheghost/bug](https://github.com/jimmytheghost/bug). No tag, GitHub Release, binary download, or website was published. The existing release list was empty when checked.
+Published with explicit user authorization on **2026-10-20** for source version **0.6.1**, build **13**. The repository is **public** at [jimmytheghost/bug](https://github.com/jimmytheghost/bug). No tag, GitHub Release, binary download, or website was published. The release list was empty during preparation.
 
 ## Prepared
 
@@ -25,8 +25,8 @@ See the **2026-10-20** entry in [VALIDATION.md](VALIDATION.md) for executed chec
 
 Existing acceptance gaps remain in [ACCEPTANCE.md](ACCEPTANCE.md). They include real capture/listening, individual call-app behavior, microphone alignment, permission persistence, long sessions, and remaining interface interactions. Existing crash-recovery and corrupt-metadata limits are documented in the README and [handoff](HANDOFF.md#known-gaps-and-operational-caveats). No new bug sweep or unrelated fixes were added to this preparation.
 
-## Publication decision
+## Publication status
 
-Source preparation is complete. Changing repository visibility requires explicit authorization under this repo’s [AGENTS.md](../AGENTS.md). If authorized, reconcile the private-visibility instructions and status statements with that decision, change visibility, then verify anonymous access. Do not leave those instructions contradicting the published state.
+The user explicitly authorized public publication on 2026-10-20. GitHub visibility was changed to PUBLIC, and unauthenticated requests returned HTTP 200 for repository metadata, the repository page, README source, and both README images. Repository instructions and current status docs now reflect public visibility. The source toolkit remains private.
 
 A downloadable app is a separate distribution decision. Before publishing one, build from the intended committed revision, choose a matching tag, inspect the archive and notices, state the actual architecture/signing limits, and validate real install/capture behavior without treating synthetic tests as live acceptance. Keep using the canonical installer for delivered updates. This pass preserves the installed app and its permission identity.

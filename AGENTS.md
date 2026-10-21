@@ -26,7 +26,7 @@ These documents are the repo's canon. Keep implementation facts synchronized wit
 
 ## Delivery workflow
 
-The repository is **private** at `https://github.com/jimmytheghost/bug`; preserve that visibility. `origin` points there and `main` tracks `origin/main`. After completing changes, run relevant validation, update affected docs, commit, and push the current branch before reporting completion. Preserve unrelated work and report push failures. Do not commit recordings, generated build output, encoder binaries, or credentials. Documentation-only changes need content/link/diff checks, not a fresh audio test or app launch.
+The repository is **public** at `https://github.com/jimmytheghost/bug`; preserve that visibility. `origin` points there and `main` tracks `origin/main`. After completing changes, run relevant validation, update affected docs, commit, and push the current branch before reporting completion. Preserve unrelated work and report push failures. Do not commit recordings, generated build output, encoder binaries, or credentials. Documentation-only changes need content/link/diff checks, not a fresh audio test or app launch.
 
 ## Documentation maintenance
 
@@ -41,4 +41,4 @@ The repository is **private** at `https://github.com/jimmytheghost/bug`; preserv
 
 ## Public sharing preparation
 
-For public-facing README or release preparation, follow [core/GITHUB-PROJECT-PAGES.md](core/GITHUB-PROJECT-PAGES.md). Import provenance is in [TOOLKIT_IMPORTS.md](TOOLKIT_IMPORTS.md). This repo remains private until the user explicitly authorizes publication; preparation alone does not change visibility or publish a binary. Current publication status and known limits are in [docs/RELEASE.md](docs/RELEASE.md). Bug code uses MIT; preserve LAME’s separate license and bundled source obligations.
+For public-facing README or release preparation, follow [core/GITHUB-PROJECT-PAGES.md](core/GITHUB-PROJECT-PAGES.md). Import provenance is in [TOOLKIT_IMPORTS.md](TOOLKIT_IMPORTS.md). The user explicitly authorized public source publication on 2026-10-20, and the repository is now public. A binary release is a separate distribution decision. Current publication status and known limits are in [docs/RELEASE.md](docs/RELEASE.md). Bug code uses MIT; preserve LAME’s separate license and bundled source obligations.
