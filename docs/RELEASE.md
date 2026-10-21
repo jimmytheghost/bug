@@ -4,7 +4,7 @@ Prepared **2026-10-20** for source version **0.6.1**, build **13**. The reposito
 
 ## Prepared
 
-- README leads with recording the computer’s audio signal as an independent backup when another app’s recorder fails. Zoom, Google Meet, and FaceTime are example sources, with individual compatibility explicitly unverified. Bug must be started beforehand; audio stops arriving from an app while that app is crashed.
+- README leads with general computer-audio recording: samples, internet radio, music, browser audio, livestreams, calls, and other available sources. Independent backup recording when another app’s recorder fails is an additional use. Individual source compatibility remains unverified. Bug must be started beforehand; audio stops arriving from an app while that app is crashed.
 - Source-build and canonical-install instructions, shared-as-is framing, adaptation pointers, existing known bugs, storage costs, and signing/acceptance limits are visible to readers. Detailed controls moved to [USAGE.md](USAGE.md).
 - Bug’s original code now uses [MIT](../LICENSE), the toolkit’s default for a previously unlicensed personal tool shared for reuse. Packaging includes that license. LAME retains its upstream license, pinned source archive, and rebuild recipe. Apple system-symbol artwork and vendor marks retain their respective rights.
 - Portable project-page guidance/templates were imported with [revision provenance](../TOOLKIT_IMPORTS.md). Private toolkit writing material was not copied.

@@ -1,10 +1,10 @@
 # Bug
 
-Bug is a native macOS menu bar app that records your computer’s audio signal, with an optional microphone, so you can keep a separate copy of a call or meeting.
+Bug is a native macOS menu bar app for recording your computer’s audio signal, with an optional microphone.
 
-Start Bug before a Zoom, Google Meet, FaceTime, or other app session you want to keep. If the app that was supposed to record it crashes or fails to save, Bug has its own local recording of the audio it captured. Enable **Include microphone** if you also want your side of the conversation.
+Capture samples, internet radio, music, browser audio, livestreams, calls, or whatever else is playing on your Mac. Click **Record**, let it run, then save, trim, and export the audio as WAV or MP3.
 
-Bug must already be recording. It cannot recover audio from before you pressed Record, and it can only capture sound that reaches your Mac. If a call app crashes, the call’s audio stops until it reconnects. Bug itself, macOS, and your storage can also fail; the recovery limits are described below. Compatibility with those individual call apps still needs hands-on verification.
+It can also keep a separate recording when another app’s recorder lets you down. Start Bug alongside Zoom, Google Meet, FaceTime, or another app, and the audio Bug has captured stays independent of that app’s recording or save process.
 
 This is a personal tool I’m sharing as it stands. If it’s useful, take it. If you want something different, fork it and have your agents, or yourself, make it work the way you want. There’s no promise of ongoing support or a release schedule. You don’t need to wait on me to change your copy.
 
@@ -42,23 +42,24 @@ The encoder build verifies the LAME 3.100 source SHA-256 and builds locally. Not
 
 All updates go through `scripts/install-app.py` to `~/Applications/Bug.app`. The installer refuses to replace a running Bug and resets only Bug’s ScreenCapture grant when its code identity changes. Default builds use ad-hoc signing and are **not notarized**. You may need to approve capture again after an update. `BUG_SIGNING_IDENTITY` accepts an existing signing identity; see [installation, signing, and permission recovery](docs/PERMISSIONS.md).
 
-## Record a backup
+## Record audio
 
 1. Open the ladybug in the menu bar. Enable **Include microphone** to capture your voice as well as the computer’s audio. Headphones help avoid recording speaker playback twice.
-2. Click **Record** before the session. Allow Bug in macOS **Privacy & Security → Screen & System Audio Recording**, plus microphone access if enabled. Restart Bug if macOS requests it.
+2. Click **Record** when you want to start capturing audio. Allow Bug in macOS **Privacy & Security → Screen & System Audio Recording**, plus microphone access if enabled. Restart Bug if macOS requests it.
 3. Confirm the timer and waveform respond to your source. You can close the panel while recording.
 4. Click **Stop Recording** to save the recording to the library. Play it back, then use **…** to export WAV or MP3.
 
-Make a short test recording with your intended audio setup before relying on it. Record only sessions you have permission to record.
+Make a short test recording with your intended audio setup before relying on it. Record audio you have permission to capture.
 
 Recordings live in `~/Library/Application Support/Bug/Recordings/`. Original sources remain after export, failed export, cancellation, and Trim. See the [usage guide](docs/USAGE.md) for storage, deletion, reminders, and trimming.
 
 ## Where it’s at
 
-The latest implementation validation passed **60 synthetic tests in 8 suites**. That does not establish live call compatibility or recording quality. Live capture, microphone alignment, permission persistence, long sessions, and several interface flows remain on the [hands-on acceptance checklist](docs/ACCEPTANCE.md). Dated evidence is in [VALIDATION.md](docs/VALIDATION.md).
+The latest implementation validation passed **60 synthetic tests in 8 suites**. That does not establish compatibility with every audio source or live recording quality. Live capture, microphone alignment, permission persistence, long sessions, and several interface flows remain on the [hands-on acceptance checklist](docs/ACCEPTANCE.md). Dated evidence is in [VALIDATION.md](docs/VALIDATION.md).
 
 Known limits:
 
+- **Recording starts when you press Record.** Bug cannot recover earlier audio. It captures the signal available to macOS; if a source app crashes or stops playing, no further audio arrives from it until playback resumes. Individual source apps still need hands-on verification.
 - **Bug’s own crash recovery is partial.** Handled interruptions can salvage readable tracks, but a Bug or system crash can leave source CAF files without finalized metadata. They stay on disk and count toward storage, but do not automatically appear in the library. There is no recovery UI. **Delete All** includes these unfinished session folders.
 - **One corrupt metadata file can prevent the library from loading.** There is no automatic quarantine. Missing source audio is reported when playback or export opens it.
 - **Recordings need disk space.** System audio uses roughly 1.4 GB per hour, plus microphone audio. There is no low-space warning, storage cap, rotation, or automatic deletion. Trim retains the originals and does not reclaim space.
@@ -82,7 +83,7 @@ After code changes, run `swift build`, `./scripts/test.sh`, and `./scripts/packa
 
 ## License
 
-Bug’s original code are available under the [MIT License](LICENSE), with permission to use, modify, and redistribute them subject to its notice and as-is terms.
+Bug’s original code is available under the [MIT License](LICENSE), with permission to use, modify, and redistribute them subject to its notice and as-is terms.
 
 The app icon is generated from Apple’s `ladybug.fill` system symbol. Third-party artwork and marks retain their respective rights.
 

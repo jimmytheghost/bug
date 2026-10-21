@@ -2,6 +2,12 @@
 
 Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
 
+## General audio positioning · 2026-10-20
+
+Broadened README, handoff, plan, and release notes to describe general computer-audio recording, including samples, internet radio, music, browser audio, livestreams, and calls. Independent backup recording remains an additional use. Moved recording-start/source-interruption limits into the existing limits section. No runtime or packaging changes.
+
+Checked Markdown links, code fences, and diff whitespace. No app launch, audio capture, build, or test rerun was needed for this documentation-only change; the 60-test result below belongs to the preceding preparation pass.
+
 ## Public source preparation · 2026-10-20
 
 Environment: Apple Silicon (arm64), macOS 26.6.2 (25G83), Apple Swift 6.3.3 Command Line Tools. App source remains v0.6.1/build 13; runtime code is unchanged. Packaging now includes Bug’s MIT license.

@@ -64,6 +64,6 @@ Distribution signing/notarization, automatic updates, accounts/cloud sync, per-a
 
 ## Public source sharing · 2026-10-20
 
-- [x] Prepare public-facing README with independent system-audio backup use case, source-build/install instructions, existing limits, and adaptation pointers.
+- [x] Prepare public-facing README with general system-audio uses (including samples and internet radio), independent backup recording, source-build/install instructions, existing limits, and adaptation pointers.
 - [x] Add MIT licensing for Bug and retain separate LAME notices/source obligations.
 - [ ] Publish only after explicit authorization; repository remains private. See [RELEASE.md](RELEASE.md) for review coverage and remaining decisions.

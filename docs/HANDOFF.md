@@ -10,13 +10,13 @@ Last updated: **2026-10-20, public source preparation**. Current source version:
 - Latest executed validation, **2026-10-20**: debug build, **60 tests in 8 suites**, isolated release packaging/signature and license-inventory checks passed. Earlier rename/Custom Trim renders remain historical evidence. No live audio or personal recording was used.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - The user confirmed v0.5.1 row deletion succeeds and no longer recurs, but the standalone alert dismisses the menu-bar panel. v0.5.2 replaces that alert with a store-backed overlay inside the existing panel. Cancel and Move to Trash clear the pending request before returning to the still-open recording list. Hands-on confirmation remains pending.
-- Public-facing README now explains independent system-audio backup recording, with source-build instructions, MIT licensing, and existing limits. See [RELEASE.md](RELEASE.md) for publication readiness. Repository visibility remains private; no binary release was published.
+- Public-facing README now presents general system-audio recording for samples, internet radio, music, browser audio, livestreams, and calls, with independent backup recording as an additional use, with source-build instructions, MIT licensing, and existing limits. See [RELEASE.md](RELEASE.md) for publication readiness. Repository visibility remains private; no binary release was published.
 
 The sibling `agent-dashboard` (Worklog) is a design reference only and must not be modified.
 
 ## Current product behavior
 
-Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional microphone, live waveform, local source CAF library, playback, rename, and WAV/MP3 export. Nothing records on launch. Start Bug before a call or meeting to retain an independent local copy if another app’s recorder fails; individual Zoom/Google Meet/FaceTime compatibility remains unverified.
+Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional microphone, live waveform, local source CAF library, playback, rename, and WAV/MP3 export. Nothing records on launch. Use it to capture samples, internet radio, music, browser audio, livestreams, calls, and other available computer audio. It can also keep an independent copy if another app’s recorder fails; individual source-app compatibility remains unverified.
 
 **Trim** immediately saves reversible metadata bounds. Default padding is 0.5 seconds; Settings offers 0/0.25/0.5/1/2 seconds. Undo survives relaunch. Playback and exports honor the same bounds. Original audio is retained, so Trim does not reclaim storage.
 
