@@ -15,7 +15,7 @@ Reviewed the tracked source tree and all **17 reachable commits / 201 unique fil
 
 Older `docs/HANDOFF.md` blobs contain the author’s local checkout path. The current handoff removes that path; history and normal author metadata were retained. The path identifies a local personal-project folder, with no credential or recording content. No history rewrite was performed.
 
-The sole tracked image is the generated Bug icon, visually inspected as a mint ladybug on a dark rounded square. No current interface screenshot was available in tracked source, so the README does not substitute a mockup. No user audio or library files were opened for this review.
+The tracked images include the generated mint ladybug icon and two README interface renders: the idle recorder and Custom Trim. The latter uses synthetic audio in an isolated temporary library. These are renders of the current app views, labeled accordingly, rather than live-capture evidence. Images were visually inspected and contain no personal audio or library information. See [image provenance and regeneration](images/README.md).
 
 The isolated package inventory contains only the executable, Info.plist, icon, encoder dylib, MIT license, encoder license/source/recipe/notice, and signature resources. Source archive SHA-256 matches the pinned value in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). This package was inspected locally and is not a published download.
 

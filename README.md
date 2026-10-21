@@ -8,6 +8,13 @@ It can also keep a separate recording when another app’s recorder lets you dow
 
 This is a personal tool I’m sharing as it stands. If it’s useful, take it. If you want something different, fork it and have your agents, or yourself, make it work the way you want. There’s no promise of ongoing support or a release schedule. You don’t need to wait on me to change your copy.
 
+<p>
+  <img src="docs/images/bug-recorder.png" alt="Bug’s recorder panel with optional microphone, Record button, and local recording library" width="360">
+  <img src="docs/images/bug-custom-trim.png" alt="Bug’s Custom Trim editor with waveform, mint trim handles, playback controls, and Save and Cancel buttons" width="360">
+</p>
+
+Recorder and Custom Trim, rendered from the current app interface. The trim preview uses synthetic audio; no live recording or personal library is shown. [Image details](docs/images/README.md).
+
 ## What it does today
 
 - Records system audio and an optional microphone after an explicit **Record** click.

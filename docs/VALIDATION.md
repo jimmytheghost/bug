@@ -2,6 +2,12 @@
 
 Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
 
+## README interface imagery · 2026-10-20
+
+Compiled the existing offscreen preview helper against current v0.6.1 sources, then rendered an idle recorder and Custom Trim with a synthetic 12-second stereo signal in an isolated temporary library/preferences suite. Visually inspected both PNGs at full resolution: complete panel edges, readable labels/controls, and no personal information. README displays each at the app’s 360-point width and explicitly identifies synthetic/offscreen provenance. See [images/README.md](images/README.md) for dimensions and regeneration.
+
+Checked local Markdown links, HTML image paths/dimensions/alt text, code fences, and diff whitespace. This pass changes docs and image assets only; no app rebuild/test-suite rerun, installation, permission reset, live capture, or personal-library access was performed. Compiling the preview helper and rendering views do not verify interactive or capture behavior.
+
 ## General audio positioning · 2026-10-20
 
 Broadened README, handoff, plan, and release notes to describe general computer-audio recording, including samples, internet radio, music, browser audio, livestreams, and calls. Independent backup recording remains an additional use. Moved recording-start/source-interruption limits into the existing limits section. No runtime or packaging changes.
