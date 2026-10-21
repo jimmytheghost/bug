@@ -1,3 +1,7 @@
+# Licenses
+
+Bug’s original code use the MIT License in [LICENSE](LICENSE). The app bundle includes that license at `Contents/Resources/LICENSE`. LAME retains its separate license below.
+
 # Bug MP3 encoder
 
 Bug dynamically loads LAME 3.100, copyright © the LAME project and its contributors.

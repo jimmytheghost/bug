@@ -1,0 +1,32 @@
+# Public source release preparation
+
+Prepared **2026-10-20** for source version **0.6.1**, build **13**. The repository remains **private** at [jimmytheghost/bug](https://github.com/jimmytheghost/bug). No tag, GitHub Release, binary download, or website was published. The existing release list was empty when checked.
+
+## Prepared
+
+- README leads with recording the computer’s audio signal as an independent backup when another app’s recorder fails. Zoom, Google Meet, and FaceTime are example sources, with individual compatibility explicitly unverified. Bug must be started beforehand; audio stops arriving from an app while that app is crashed.
+- Source-build and canonical-install instructions, shared-as-is framing, adaptation pointers, existing known bugs, storage costs, and signing/acceptance limits are visible to readers. Detailed controls moved to [USAGE.md](USAGE.md).
+- Bug’s original code now uses [MIT](../LICENSE), the toolkit’s default for a previously unlicensed personal tool shared for reuse. Packaging includes that license. LAME retains its upstream license, pinned source archive, and rebuild recipe. Apple system-symbol artwork and vendor marks retain their respective rights.
+- Portable project-page guidance/templates were imported with [revision provenance](../TOOLKIT_IMPORTS.md). Private toolkit writing material was not copied.
+
+## Publication review coverage
+
+Reviewed the tracked source tree and all **17 reachable commits / 201 unique file blobs** before this preparation commit, including file inventories and a focused credential-pattern scan. No credential-pattern matches, recordings, generated encoder binaries, encoder archives, or build output were found in that history. The scan covered common GitHub/AWS token shapes, private-key headers, and quoted password/API-key/client-secret/access-token assignments; it does not prove the absence of every secret.
+
+Older `docs/HANDOFF.md` blobs contain the author’s local checkout path. The current handoff removes that path; history and normal author metadata were retained. The path identifies a local personal-project folder, with no credential or recording content. No history rewrite was performed.
+
+The sole tracked image is the generated Bug icon, visually inspected as a mint ladybug on a dark rounded square. No current interface screenshot was available in tracked source, so the README does not substitute a mockup. No user audio or library files were opened for this review.
+
+The isolated package inventory contains only the executable, Info.plist, icon, encoder dylib, MIT license, encoder license/source/recipe/notice, and signature resources. Source archive SHA-256 matches the pinned value in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). This package was inspected locally and is not a published download.
+
+## Validation and remaining limits
+
+See the **2026-10-20** entry in [VALIDATION.md](VALIDATION.md) for executed checks. Debug build, 60 synthetic tests in 8 suites, release packaging, and deep/strict signature verification passed on Apple Silicon/macOS 26.6.2/Swift 6.3.3. The signature is ad hoc; this does not establish notarization, Gatekeeper acceptance, live capture authorization, or other-platform support.
+
+Existing acceptance gaps remain in [ACCEPTANCE.md](ACCEPTANCE.md). They include real capture/listening, individual call-app behavior, microphone alignment, permission persistence, long sessions, and remaining interface interactions. Existing crash-recovery and corrupt-metadata limits are documented in the README and [handoff](HANDOFF.md#known-gaps-and-operational-caveats). No new bug sweep or unrelated fixes were added to this preparation.
+
+## Publication decision
+
+Source preparation is complete. Changing repository visibility requires explicit authorization under this repo’s [AGENTS.md](../AGENTS.md). If authorized, reconcile the private-visibility instructions and status statements with that decision, change visibility, then verify anonymous access. Do not leave those instructions contradicting the published state.
+
+A downloadable app is a separate distribution decision. Before publishing one, build from the intended committed revision, choose a matching tag, inspect the archive and notices, state the actual architecture/signing limits, and validate real install/capture behavior without treating synthetic tests as live acceptance. Keep using the canonical installer for delivered updates. This pass preserves the installed app and its permission identity.

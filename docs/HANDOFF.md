@@ -1,22 +1,22 @@
 # Agent handoff
 
-Last updated: **2026-09-08, in-panel rename**. Current source version: **0.6.1**, build **13**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-10-20, public source preparation**. Current source version: **0.6.1**, build **13**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
 
 - v0.6.1 replaces the popover-bound rename alert with a store-backed in-panel editor. Save/Cancel clear the pending editor without closing the Bug panel, and Save reloads the library. Use `git log -1` for the latest committed revision.
 - Private repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. GitHub privacy was rechecked for this handoff.
-- Latest artifact is `dist/updates/v0.6.1/Bug.app`; deliver only through `scripts/install-app.py` and never launch the staging copy.
-- Latest executed validation: **60 tests in 8 suites passed**. The rename editor and Custom Trim overview/forced 10× states were rendered at the real 360-point width. No live audio or personal recording was used during automated validation.
+- Latest validation artifact is `.build/public-prep-package/Bug.app` (v0.6.1/build 13, with bundled MIT license). It was not installed or launched. Deliver updates only through `scripts/install-app.py`; the canonical installed copy remains untouched.
+- Latest executed validation, **2026-10-20**: debug build, **60 tests in 8 suites**, isolated release packaging/signature and license-inventory checks passed. Earlier rename/Custom Trim renders remain historical evidence. No live audio or personal recording was used.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - The user confirmed v0.5.1 row deletion succeeds and no longer recurs, but the standalone alert dismisses the menu-bar panel. v0.5.2 replaces that alert with a store-backed overlay inside the existing panel. Cancel and Move to Trash clear the pending request before returning to the still-open recording list. Hands-on confirmation remains pending.
-- No background work, pending subagent patch, or automatic task needs collection. The user is wrapping up for the day.
+- Public-facing README now explains independent system-audio backup recording, with source-build instructions, MIT licensing, and existing limits. See [RELEASE.md](RELEASE.md) for publication readiness. Repository visibility remains private; no binary release was published.
 
-The checkout is `/Users/jimmytheghost/Dropbox/_Personal Projects/bug`. The sibling `agent-dashboard` (Worklog) is a design reference only and must not be modified.
+The sibling `agent-dashboard` (Worklog) is a design reference only and must not be modified.
 
 ## Current product behavior
 
-Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional microphone, live waveform, local source CAF library, playback, rename, and WAV/MP3 export. Nothing records on launch.
+Bug is a lightweight native macOS 15+ menu bar recorder: system audio, optional microphone, live waveform, local source CAF library, playback, rename, and WAV/MP3 export. Nothing records on launch. Start Bug before a call or meeting to retain an independent local copy if another app’s recorder fails; individual Zoom/Google Meet/FaceTime compatibility remains unverified.
 
 **Trim** immediately saves reversible metadata bounds. Default padding is 0.5 seconds; Settings offers 0/0.25/0.5/1/2 seconds. Undo survives relaunch. Playback and exports honor the same bounds. Original audio is retained, so Trim does not reclaim storage.
 
@@ -43,6 +43,8 @@ The canonical installation is `~/Applications/Bug.app` v0.6.1 build 13. It was i
 The user accepts normal reapproval on updates. A signing certificate is optional, not a prerequisite for this repair. No certificate/trust changes were made. Never reset unrelated grants, alter the privacy database, or terminate an active capture.
 
 ## Next session
+
+Public sharing preparation is documented in [RELEASE.md](RELEASE.md). Obtain explicit publication authorization before changing visibility or publishing a release.
 
 1. Ask the user to verify that Rename Save/Cancel closes only the editor, leaves the panel open, and immediately updates the library.
 2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for remaining Custom Trim persistence and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.

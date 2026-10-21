@@ -18,6 +18,7 @@ swift build --package-path "$PROJECT_ROOT" -c release
 BIN_DIR=$(swift build --package-path "$PROJECT_ROOT" -c release --show-bin-path)
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources" "$APP_DIR/Contents/Frameworks"
 cp "$BIN_DIR/Bug" "$APP_DIR/Contents/MacOS/Bug"
+cp "$PROJECT_ROOT/LICENSE" "$APP_DIR/Contents/Resources/LICENSE"
 cp "$PROJECT_ROOT/Resources/Info.plist" "$APP_DIR/Contents/Info.plist"
 cp "$PROJECT_ROOT/Resources/Encoder/libmp3lame.dylib" "$APP_DIR/Contents/Frameworks/libmp3lame.dylib"
 mkdir -p "$APP_DIR/Contents/Resources/Encoder"

@@ -61,3 +61,9 @@ Automatic retention and low-disk warnings are follow-up candidates; Trash/size/r
 Distribution signing/notarization, automatic updates, accounts/cloud sync, per-app capture selection, pause/resume, and global shortcuts are not part of the confirmed first release. Do not silently expand into these features. Canonical implementation details are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - [x] Add canonical installer with identity comparison and scoped reset before reapproval; require it for every future delivery. Actual post-repair capture verification remains pending.
+
+## Public source sharing · 2026-10-20
+
+- [x] Prepare public-facing README with independent system-audio backup use case, source-build/install instructions, existing limits, and adaptation pointers.
+- [x] Add MIT licensing for Bug and retain separate LAME notices/source obligations.
+- [ ] Publish only after explicit authorization; repository remains private. See [RELEASE.md](RELEASE.md) for review coverage and remaining decisions.

@@ -1,6 +1,8 @@
 # Canonical architecture
 
-Updated **2026-09-08** against the v0.6.1 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-10-20** against the v0.6.1 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+
+The packaging script includes Bug’s MIT license at `Contents/Resources/LICENSE`, alongside the separate encoder licensing/source materials.
 
 ## Product and design decisions
 

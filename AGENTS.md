@@ -38,3 +38,7 @@ The repository is **private** at `https://github.com/jimmytheghost/bug`; preserv
 - ACCEPTANCE: hands-on checkboxes; check only with observed results and record date/environment.
 - THIRD_PARTY_NOTICES: encoder version, source hash, license, and packaging obligations. Preserve upstream license text verbatim.
 - PERMISSIONS: signing identity, scoped recovery, and confirmed permission incidents.
+
+## Public sharing preparation
+
+For public-facing README or release preparation, follow [core/GITHUB-PROJECT-PAGES.md](core/GITHUB-PROJECT-PAGES.md). Import provenance is in [TOOLKIT_IMPORTS.md](TOOLKIT_IMPORTS.md). This repo remains private until the user explicitly authorizes publication; preparation alone does not change visibility or publish a binary. Current publication status and known limits are in [docs/RELEASE.md](docs/RELEASE.md). Bug code uses MIT; preserve LAME’s separate license and bundled source obligations.

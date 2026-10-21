@@ -1,6 +1,17 @@
-# Validation · 2026-09-08
+# Validation
 
 Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Public source preparation · 2026-10-20
+
+Environment: Apple Silicon (arm64), macOS 26.6.2 (25G83), Apple Swift 6.3.3 Command Line Tools. App source remains v0.6.1/build 13; runtime code is unchanged. Packaging now includes Bug’s MIT license.
+
+- `swift build` passed. `scripts/test.sh` explicitly executed **60 tests in 8 suites**, all passing. Tests used synthetic audio, fake capture/presenters, and injected reminder clocks. No live audio was recorded.
+- `scripts/package-app.sh "$PWD/.build/public-prep-package"` passed, as did shell syntax and deep/strict code-signature verification. Both executable and encoder contain arm64. Ad-hoc signing was confirmed; no notarization or Gatekeeper acceptance is claimed.
+- Bundle inventory matched exactly 10 intended files, including signature resources. Bundled MIT license matches the source license; upstream `COPYING.LAME` remains byte-for-byte unchanged. Bundled LAME source SHA-256 matches `ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e`.
+- Reviewed 17 reachable commits and 201 unique file blobs before this commit with focused credential-pattern and runtime-artifact inspection. No credential-pattern matches or committed recordings/generated encoders/build outputs found. Historical local checkout paths remain in older handoffs; current handoff removes that path. Review coverage and limits are in [RELEASE.md](RELEASE.md).
+- Visually inspected the tracked icon. Verified imported process/template copies against their local toolkit source. Checked 15 Markdown files, 66 repository-local links (excluding reusable template destination links), code fences, README placeholders, and diff whitespace.
+- GitHub reported PRIVATE and no releases. No visibility change, binary publication, installed-app replacement, permission reset, app launch, or personal recording access was performed. Existing live acceptance remains pending.
 
 ## In-panel rename editor · v0.6.1
 
