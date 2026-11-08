@@ -73,36 +73,6 @@ struct BugMenuView: View {
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.16)))
                 .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
             }
-        } else if let recording = store.pendingRecordingRename {
-            ZStack {
-                Color.black.opacity(0.42)
-                    .contentShape(Rectangle())
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Rename recording").font(.headline)
-                    TextField("Name", text: $newTitle)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($renameFieldFocused)
-                        .onSubmit { confirmRename() }
-                    HStack(spacing: 8) {
-                        Button("Cancel") { cancelRename() }
-                            .keyboardShortcut(.cancelAction)
-                        Spacer()
-                        Button("Save") { confirmRename() }
-                            .buttonStyle(.borderedProminent)
-                            .keyboardShortcut(.defaultAction)
-                            .disabled(newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
-                }
-                .padding(16)
-                .frame(width: 300)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.16)))
-                .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
-                .onAppear {
-                    newTitle = recording.title
-                    renameFieldFocused = true
-                }
-            }
         }
     }
 
@@ -356,7 +326,35 @@ struct BugMenuView: View {
             .buttonStyle(.plain).disabled(store.isBusy)
             .accessibilityLabel(store.playingID == recording.id ? "Stop playback" : "Play \(recording.title)")
             VStack(alignment: .leading, spacing: 4) {
-                Text(recording.title).font(.callout.weight(.medium)).lineLimit(1).help("\(recording.title) · \(recording.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                if store.pendingRecordingRename?.id == recording.id {
+                    TextField("Recording title", text: $newTitle)
+                        .font(.callout.weight(.medium))
+                        .textFieldStyle(.plain)
+                        .focused($renameFieldFocused)
+                        .onSubmit { confirmRename() }
+                        .onExitCommand { cancelRename() }
+                        .onAppear {
+                            newTitle = store.pendingRecordingRename?.title ?? recording.title
+                            renameFieldFocused = true
+                        }
+                        .onChange(of: renameFieldFocused) { _, focused in
+                            guard !focused, store.pendingRecordingRename?.id == recording.id else { return }
+                            if newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                cancelRename()
+                            } else {
+                                confirmRename()
+                            }
+                        }
+                        .onDisappear { store.cancelRecordingRename() }
+                        .accessibilityLabel("Recording title")
+                        .help("Return to save. Escape to cancel.")
+                } else {
+                    Text(recording.title).font(.callout.weight(.medium)).lineLimit(1)
+                        .contentShape(Rectangle())
+                        .onTapGesture(count: 2) { beginRename(recording) }
+                        .accessibilityAction(named: Text("Rename")) { beginRename(recording) }
+                        .help("\(recording.title) · \(recording.createdAt.formatted(date: .abbreviated, time: .shortened))\nDouble-click to rename")
+                }
                 Text("\(RecorderStore.durationLabel(recording.playbackDuration)) · \(store.sizeLabel(for: recording))\(recording.trimRange != nil ? " · Trimmed" : "")\(recording.microphoneFilename != nil ? " · Mic" : "")")
                     .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
             }

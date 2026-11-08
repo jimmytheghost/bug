@@ -8,6 +8,8 @@ Use the visible **trash can** beside a recording to move its source folder to ma
 
 Recordings live in `~/Library/Application Support/Bug/Recordings/`. The **Library folder** button opens this directory. Each session has lossless source CAF tracks and JSON metadata. WAV/MP3 are created only on export. Audio is written incrementally; uncompressed stereo sources use roughly 1.4 GB per hour, plus microphone audio. The library does not automatically delete recordings. Interrupted sessions without finalized JSON metadata remain on disk but are not automatically imported into the library; see [known gaps](HANDOFF.md#known-gaps-and-operational-caveats).
 
+Double-click a recording title to edit it in place, or choose **… → Rename…**. Press **Return** to save or **Escape** to cancel. Moving keyboard focus away also saves a nonempty name; a blank name leaves the original unchanged. Renaming changes only metadata and keeps the source audio and trim bounds.
+
 ## Library storage
 
 Each row shows duration and file size; hover over the title for the recording date. The library heading shows the recording count and total file sizes in the Library folder. This includes metadata and unfinished sessions, so the total may exceed the sizes of the playable entries. Sizes are logical file bytes, not an estimate of reclaimable disk space.

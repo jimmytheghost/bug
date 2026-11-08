@@ -1,6 +1,6 @@
 # Canonical architecture
 
-Updated **2026-10-20** against the v0.6.1 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
+Updated **2026-11-08** against the v0.6.2 implementation. Product scope is in [PLAN.md](PLAN.md); current gaps and next work are in [HANDOFF.md](HANDOFF.md).
 
 The packaging script includes Bug’s MIT license at `Contents/Resources/LICENSE`, alongside the separate encoder licensing/source materials.
 
@@ -27,7 +27,7 @@ The user explicitly chose optional microphone capture and a persistent recording
 | `CustomTrimEditor.swift` | Bounded full-recording waveform, frame selection model, and inline drag-handle view |
 | `ExportMP3Encoder.swift` | Dynamically loaded LAME API, 320 kbps MP3 encoding |
 
-`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.6.1, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
+`Resources/Info.plist` defines bundle ID `com.jimmyweber.bug`, version 0.6.2, deployment target, usage descriptions, and menu-only behavior. `Package.swift` uses a Swift 5.9 manifest/Swift 5 language mode; tests use Swift Testing. The verified compiler is Swift 6.3.3.
 
 ## State and user actions
 
@@ -65,7 +65,7 @@ Each source's timestamps are relative to one host-clock epoch. Writers insert le
 
 `Recording` has `id: UUID`, `createdAt: Date`, `title: String`, `duration: TimeInterval`, `systemFilename: String`, and `microphoneFilename: String?`. The default `JSONEncoder`/`JSONDecoder` strategies encode dates as seconds relative to Foundation's reference date (2001-01-01), not ISO strings or Unix timestamps. `trimRange: AudioTrimRange?` is an optional backward-compatible edit field; older metadata without it decodes as untrimmed. `duration` remains the full original duration, and `playbackDuration` reflects the trim when present. Metadata has no schema version or migration layer. Preserve compatibility or introduce an explicit migration when changing it.
 
-JSON writes are atomic. Load orders recordings newest first, skips directories without metadata, and rejects mismatched directory/recording IDs or source filenames containing paths. An invalid metadata entry currently throws for the entire load. Rename only rewrites metadata. Its store-owned pending state drives an in-panel editor so Save/Cancel can clear the editor without dismissing the MenuBarExtra; Save clears pending state before writing and reloading the library. Delete moves the whole source directory to Trash; exported copies remain elsewhere. Capture storage and exported destinations are separate; there is no automatic retention.
+JSON writes are atomic. Load orders recordings newest first, skips directories without metadata, and rejects mismatched directory/recording IDs or source filenames containing paths. An invalid metadata entry currently throws for the entire load. Rename only rewrites metadata. Its store-owned pending state drives an inline title field in the library row, entered by double-click, the Rename menu item, or an accessibility action. Return or focus loss saves a nonempty name; Escape cancels. Blank names cannot replace the original. The draft is view-local, survives routine row refresh, and is discarded when the field disappears. Commit clears pending state before writing and reloading the library, without dismissing the MenuBarExtra. Delete moves the whole source directory to Trash; exported copies remain elsewhere. Capture storage and exported destinations are separate; there is no automatic retention.
 
 ## Library storage and refresh
 

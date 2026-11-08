@@ -1,13 +1,13 @@
 # Agent handoff
 
-Last updated: **2026-10-20, public source publication**. Current source version: **0.6.1**, build **13**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-11-08, inline title renaming**. Current source version: **0.6.2**, build **14**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
 
-- v0.6.1 replaces the popover-bound rename alert with a store-backed in-panel editor. Save/Cancel clear the pending editor without closing the Bug panel, and Save reloads the library. Use `git log -1` for the latest committed revision.
+- v0.6.2 makes recording titles editable in place on double-click. Return or focus loss commits a nonempty name; Escape cancels. The Rename menu item and accessibility action use the same field. Names remain metadata-only, preserving source audio and trim bounds. Use `git log -1` for the latest committed revision.
 - Public repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. The user authorized publication on 2026-10-20; public visibility and anonymous access were verified.
-- Latest validation artifact is `.build/public-prep-package/Bug.app` (v0.6.1/build 13, with bundled MIT license). It was not installed or launched. Deliver updates only through `scripts/install-app.py`; the canonical installed copy remains untouched.
-- Latest executed validation, **2026-10-20**: debug build, **60 tests in 8 suites**, isolated release packaging/signature and license-inventory checks passed. Earlier rename/Custom Trim renders remain historical evidence. No live audio or personal recording was used.
+- Latest validation artifact is `.build/inline-rename-package/Bug.app` (v0.6.2/build 14, with bundled MIT license). Installed through the canonical installer and reopened at `~/Applications/Bug.app`. Deliver updates only through `scripts/install-app.py`.
+- Latest executed validation, **2026-11-08**: debug build and **60 tests in 8 suites** passed. The isolated inline-rename render fits the 360-point panel. Packaging/installation evidence is in [VALIDATION.md](VALIDATION.md). No live audio or personal recording was used.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - The user confirmed v0.5.1 row deletion succeeds and no longer recurs, but the standalone alert dismisses the menu-bar panel. v0.5.2 replaces that alert with a store-backed overlay inside the existing panel. Cancel and Move to Trash clear the pending request before returning to the still-open recording list. Hands-on confirmation remains pending.
 - README now includes recorder and Custom Trim images rendered from the current views at 360 points, using isolated fixtures. See [image provenance](images/README.md); these do not verify live recording or interactive behavior.
@@ -37,7 +37,7 @@ Per-recording Trash uses an in-panel confirmation overlay backed by `pendingReco
 
 The user clarified that permission failed **after enabling it**. Logs confirmed the saved v0.3.0 identity was still used for running v0.4.4. Our old workflow (launch each versioned staging build, ask the user to reapprove) left stale grants behind.
 
-The canonical installation is `~/Applications/Bug.app` v0.6.1 build 13. It was installed through the canonical installer and reopened from that path. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
+The canonical installation is `~/Applications/Bug.app` v0.6.2 build 14. It was installed through the canonical installer and reopened from that path. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
 
 **Every delivered update must use `python3 scripts/install-app.py <staged Bug.app>`.** It requires Bug to be quit, stages/verifies the bundle, resets only Bug ScreenCapture when the designated requirement changes, backs up the old app, and installs at the canonical path. Reopen that copy and let the user approve it. Never launch directly from staged version folders. Read [PERMISSIONS.md](PERMISSIONS.md) for diagnostics and explicit same-build repair.
 
@@ -47,7 +47,7 @@ The user accepts normal reapproval on updates. A signing certificate is optional
 
 Public source publication is documented in [RELEASE.md](RELEASE.md). The user authorized making the repository public on 2026-10-20. A binary release remains a separate distribution decision.
 
-1. Ask the user to verify that Rename Save/Cancel closes only the editor, leaves the panel open, and immediately updates the library.
+1. Verify double-click inline Rename, Return/focus-loss commit, Escape cancellation, blank-name preservation, draft survival during refresh, and persisted names. Interactive acceptance remains pending.
 2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for remaining Custom Trim persistence and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve public visibility and unrelated work.
@@ -73,7 +73,7 @@ Packaging builds the host architecture. The encoder script supports `ARCHS="arm6
 
 ### Offscreen layout preview
 
-The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--trim-fixture`, `--trimmed-fixture`, `--rename-confirmation`, `--delete-confirmation`, `--settings`, `--deleted-fixture`, or `--silence-reminder` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
+The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--trim-fixture`, `--trimmed-fixture`, `--inline-rename`, `--delete-confirmation`, `--settings`, `--deleted-fixture`, or `--silence-reminder` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
 
 On the original Apple Silicon host:
 

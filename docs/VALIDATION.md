@@ -1,6 +1,14 @@
 # Validation
 
-Current baseline: v0.6.1, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.6.2, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Inline title renaming · 2026-11-08
+
+- Environment: Apple Silicon, macOS 26.6.2 (25G83), Swift 6.3.3. `swift build` passed and `scripts/test.sh` executed **60 tests in 8 suites**, all passing. Existing tests cover pending rename cancellation, metadata persistence, whitespace normalization, and preserving trim/source data.
+- Double-clicking a library title now opens its inline field. The Rename menu item and accessibility action use the same field. Return/focus loss commits a nonempty name, Escape cancels, and blank names cannot replace the original. Only the view and app version changed; the persistence implementation is reused.
+- Compiled the isolated preview helper and visually inspected `.build/qa/inline-rename.png`: the title field fits the 360-point panel with row actions and footer visible. This checks layout only; double-click, focus/keyboard routing, refresh during editing, and real MenuBarExtra behavior remain unchecked in [ACCEPTANCE.md](ACCEPTANCE.md).
+- `scripts/package-app.sh` passed at `.build/inline-rename-package/Bug.app`, v0.6.2/build 14, with deep/strict signature verification. The normal Quit request was initially refused and the installer correctly refused to replace the running app. After the user confirmed Stop/Quit, the canonical installer backed up the previous app, reset only Bug ScreenCapture for the changed ad-hoc identity, installed at `~/Applications/Bug.app`, and that copy reopened. Capture reapproval remains a user action.
+- No live audio was captured or personal recording opened, renamed, exported, or deleted during verification. Unrelated `img/` work was preserved. Documentation links and diff whitespace were checked.
 
 ## Public source publication · 2026-10-20
 

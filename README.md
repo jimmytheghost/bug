@@ -19,7 +19,7 @@ Recorder and Custom Trim, rendered from the current app interface. The trim prev
 
 - Records system audio and an optional microphone after an explicit **Record** click.
 - Shows a live waveform and elapsed time, and keeps recording with the panel closed.
-- Keeps lossless source recordings in a local library with playback, rename, and recoverable Move to Trash.
+- Keeps lossless source recordings in a local library with playback, double-click title renaming, and recoverable Move to Trash.
 - Exports 48 kHz / 24-bit stereo WAV or 320 kbps stereo MP3.
 - Offers automatic silence trimming and manual Custom Trim with precision handles. Edits are reversible; playback and both exports use the same saved bounds.
 - Reminds you about silence. **Keep Recording** continues, **Stop Recording** saves, and ignoring the reminder leaves recording running.
@@ -29,7 +29,7 @@ The app has no accounts, uploads, telemetry, web runtime, or background service.
 
 ## Build it yourself
 
-Current source version: **0.6.1**. Source is publicly available; no downloadable binary release is published.
+Current source version: **0.6.2**. Source is publicly available; no downloadable binary release is published.
 
 Requires **macOS 15 or newer**, Xcode Command Line Tools with a macOS 15+ SDK, and Swift Testing. Previous implementation validation used Swift 6.3.3 on Apple Silicon with Swift 5 language mode and a Swift 5.9 package manifest. Intel, a universal app, and a separate macOS 15 host have not been verified.
 

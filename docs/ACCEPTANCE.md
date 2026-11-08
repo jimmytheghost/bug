@@ -10,7 +10,7 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Play the entry. Export WAV and MP3 and listen to both; compare beginning, middle, end, stereo channels, and duration.
 - [ ] Record with microphone enabled and headphones. Speak while system audio plays; confirm both sources are present and aligned.
 - [ ] Record microphone speech while the system is silent; then system audio while microphone is silent. Confirm silence does not remove or shift the other source.
-- [ ] Rename a recording. Confirm Save closes only the in-panel editor, keeps the Bug panel open, and immediately shows the updated library name; relaunch Bug and confirm metadata and playback persist.
+- [ ] **v0.6.2:** Double-click a title and type a new name inline. Return should save and immediately update the row while keeping the panel open. Check Escape cancellation, blank-name preservation, focus-loss commit, long/Unicode titles, and **… → Rename…**. Leave a draft through a five-second refresh; confirm it survives. Relaunch and confirm the name, trim bounds, and playback persist.
 - [ ] Cancel export. Confirm no loss of the library entry or existing destination. Try an unwritable destination and confirm a visible error.
 - [ ] Move a test recording to Trash. Confirm exported copies remain and source files are recoverable from Trash.
 - [ ] Exercise long recordings, device changes, sleep/wake, permission revocation, and disk-full behavior. Confirm failures are visible and partial source files remain available.

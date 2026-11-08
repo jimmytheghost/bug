@@ -8,7 +8,7 @@ macOS personal use first. Native menu bar app matching Worklog. Record all captu
 
 Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFoundation. Main actor store owns user-visible state. Capture runs on a serial sample queue and writes timestamp-aligned system and optional microphone tracks to disk. Export mixes tracks offline, preserving source files. Library lives in Application Support/Bug; capture sessions use unique directories. UI retains errors and protects active capture when quitting.
 
-## Current milestone status · 2026-09-08
+## Current milestone status · 2026-11-08
 
 - [x] Confirm scope with user: system audio plus optional microphone, persistent library, macOS personal use first.
 - [x] Scaffold native Swift package and Worklog-style interface.
@@ -33,6 +33,7 @@ Swift Package targeting macOS 15+, SwiftUI MenuBarExtra, ScreenCaptureKit, AVFou
 - [x] v0.5.2: move row Trash confirmation into a store-backed in-panel overlay so the menu stays open while deleting multiple tracks; 58 tests in 8 suites pass.
 - [x] v0.6.0: add 0.25-second press-and-hold 10× precision for Custom Trim, with pinned head/tail edges, fine drag scaling, and automatic overview return; 59 tests in 8 suites pass.
 - [x] v0.6.1: replace the recurring popover-bound rename alert with a store-backed in-panel editor that keeps the app panel open and refreshes the library; 60 tests in 8 suites pass.
+- [x] v0.6.2: double-click recording titles to rename inline; Return/focus loss saves, Escape cancels, and the menu Rename action uses the same field. 60 tests in 8 suites pass; interactive acceptance remains pending.
 - [ ] Verify live capture after [canonical installation and scoped permission repair](PERMISSIONS.md), including the next changed build. Stable certificate signing is optional future work; the user accepts normal reapproval.
 - [ ] Complete live permission/capture/playback/export and login-item acceptance checks.
 - [ ] Investigate and prioritize the known gaps in [HANDOFF.md](HANDOFF.md) after live testing.
