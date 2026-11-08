@@ -5,6 +5,7 @@ Last updated: **2026-11-08, inline title renaming**. Current source version: **0
 ## Current state
 
 - v0.6.2 makes recording titles editable in place on double-click. Return or focus loss commits a nonempty name; Escape cancels. The Rename menu item and accessibility action use the same field. Names remain metadata-only, preserving source audio and trim bounds. Use `git log -1` for the latest committed revision.
+- User confirmed on **2026-11-08** that double-clicking a title lets them rename it as requested. Extended keyboard, cancellation, refresh, and relaunch checks remain in [ACCEPTANCE.md](ACCEPTANCE.md).
 - Public repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. The user authorized publication on 2026-10-20; public visibility and anonymous access were verified.
 - Latest validation artifact is `.build/inline-rename-package/Bug.app` (v0.6.2/build 14, with bundled MIT license). Installed through the canonical installer and reopened at `~/Applications/Bug.app`. Deliver updates only through `scripts/install-app.py`.
 - Latest executed validation, **2026-11-08**: debug build and **60 tests in 8 suites** passed. The isolated inline-rename render fits the 360-point panel. Packaging/installation evidence is in [VALIDATION.md](VALIDATION.md). No live audio or personal recording was used.
@@ -47,7 +48,7 @@ The user accepts normal reapproval on updates. A signing certificate is optional
 
 Public source publication is documented in [RELEASE.md](RELEASE.md). The user authorized making the repository public on 2026-10-20. A binary release remains a separate distribution decision.
 
-1. Verify double-click inline Rename, Return/focus-loss commit, Escape cancellation, blank-name preservation, draft survival during refresh, and persisted names. Interactive acceptance remains pending.
+1. Double-click inline Rename is user-confirmed. Remaining rename checks: Return/focus-loss commit, Escape cancellation, blank-name preservation, draft survival during refresh, and persisted names.
 2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for remaining Custom Trim persistence and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve public visibility and unrelated work.

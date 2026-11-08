@@ -1,6 +1,6 @@
 # Hands-on acceptance
 
-**Status: partially verified as of 2026-09-08.** The user confirmed the v0.4.3 Delete All success path and v0.5.1 per-recording deletion. v0.5.1 fixed the recurring alert but its standalone confirmation closed the menu panel; v0.5.2 uses an in-panel confirmation and awaits hands-on verification. Add date, macOS/device details, and evidence when completing a check; approval of appearance does not establish recording quality.
+**Status: partially verified as of 2026-11-08.** The user confirmed the v0.4.3 Delete All success path, v0.5.1 per-recording deletion, and v0.6.2 double-click title renaming. v0.5.1 fixed the recurring alert but its standalone confirmation closed the menu panel; v0.5.2 uses an in-panel confirmation and awaits hands-on verification. Add date, macOS/device details, and evidence when completing a check; approval of appearance does not establish recording quality.
 
 Automated tests use synthetic samples. These checks require the user's macOS permissions and actual audio sources; do not mark them passed based on compilation alone.
 
@@ -10,7 +10,8 @@ Automated tests use synthetic samples. These checks require the user's macOS per
 - [ ] Play the entry. Export WAV and MP3 and listen to both; compare beginning, middle, end, stereo channels, and duration.
 - [ ] Record with microphone enabled and headphones. Speak while system audio plays; confirm both sources are present and aligned.
 - [ ] Record microphone speech while the system is silent; then system audio while microphone is silent. Confirm silence does not remove or shift the other source.
-- [ ] **v0.6.2:** Double-click a title and type a new name inline. Return should save and immediately update the row while keeping the panel open. Check Escape cancellation, blank-name preservation, focus-loss commit, long/Unicode titles, and **… → Rename…**. Leave a draft through a five-second refresh; confirm it survives. Relaunch and confirm the name, trim bounds, and playback persist.
+- [x] **2026-11-08, user’s development Mac, installed v0.6.2:** Double-click a recording title and rename it inline. User confirmed: “Double-clicking the title lets me rename it just like I wanted.” The installation host was Apple Silicon/macOS 26.6.2; the user did not separately report environment details.
+- [ ] **v0.6.2 extended rename checks:** Verify Return commits while keeping the panel open, Escape cancellation, blank-name preservation, focus-loss commit, long/Unicode titles, and **… → Rename…**. Leave a draft through a five-second refresh; confirm it survives. Relaunch and confirm the name, trim bounds, and playback persist.
 - [ ] Cancel export. Confirm no loss of the library entry or existing destination. Try an unwritable destination and confirm a visible error.
 - [ ] Move a test recording to Trash. Confirm exported copies remain and source files are recoverable from Trash.
 - [ ] Exercise long recordings, device changes, sleep/wake, permission revocation, and disk-full behavior. Confirm failures are visible and partial source files remain available.

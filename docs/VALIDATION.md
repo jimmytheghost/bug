@@ -2,6 +2,12 @@
 
 Current baseline: v0.6.2, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
 
+## User confirmation of inline rename · 2026-11-08
+
+After canonical v0.6.2 installation, the user reported: “Double-clicking the title lets me rename it just like I wanted.” This confirms the requested double-click inline rename interaction on their development Mac. The installation host was Apple Silicon/macOS 26.6.2; environment details were not separately supplied with this confirmation. Extended keyboard/cancellation, refresh, relaunch, and live audio checks remain pending.
+
+This follow-up changes documentation only. Local Markdown links, code fences, and diff whitespace were checked; no build, test rerun, app launch, capture, or permission change was performed. The 60-test baseline is from the implementation pass below.
+
 ## Inline title renaming · 2026-11-08
 
 - Environment: Apple Silicon, macOS 26.6.2 (25G83), Swift 6.3.3. `swift build` passed and `scripts/test.sh` executed **60 tests in 8 suites**, all passing. Existing tests cover pending rename cancellation, metadata persistence, whitespace normalization, and preserving trim/source data.
