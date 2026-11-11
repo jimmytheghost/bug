@@ -7,7 +7,7 @@ Published with explicit user authorization on **2026-10-20** for source version 
 - README leads with general computer-audio recording: samples, internet radio, music, browser audio, livestreams, calls, and other available sources. Independent backup recording when another app’s recorder fails is an additional use. Individual source compatibility remains unverified. Bug must be started beforehand; audio stops arriving from an app while that app is crashed.
 - Source-build and canonical-install instructions, shared-as-is framing, adaptation pointers, existing known bugs, storage costs, and signing/acceptance limits are visible to readers. Detailed controls moved to [USAGE.md](USAGE.md).
 - Bug’s original code now uses [MIT](../LICENSE), the toolkit’s default for a previously unlicensed personal tool shared for reuse. Packaging includes that license. LAME retains its upstream license, pinned source archive, and rebuild recipe. Apple system-symbol artwork and vendor marks retain their respective rights.
-- Portable project-page guidance/templates were imported with [revision provenance](../TOOLKIT_IMPORTS.md). Private toolkit writing material was not copied.
+- The release preparation used [the toolkit’s project-page guide at revision `8b30f57`](https://github.com/jimmytheghost/agentic-toolkit/blob/8b30f57e79a7bb2d298f027c2db841dd1ba1463f/core/GITHUB-PROJECT-PAGES.md).
 
 ## Publication review coverage
 

@@ -1,5 +1,7 @@
 # Bug
 
+Read [Jimmy Weber’s Agentic Toolkit](https://github.com/jimmytheghost/agentic-toolkit/blob/main/README.md) on GitHub for shared guidance relevant to the task. The private toolkit requires authenticated access. If it is unavailable, say what you could not read and continue with the project instructions where possible.
+
 Native SwiftUI macOS 15+ menu bar audio recorder, part of the Worklog suite.
 
 - Keep the app lightweight, local, and free of a web runtime or background service.
@@ -41,4 +43,4 @@ The repository is **public** at `https://github.com/jimmytheghost/bug`; preserve
 
 ## Public sharing preparation
 
-For public-facing README or release preparation, follow [core/GITHUB-PROJECT-PAGES.md](core/GITHUB-PROJECT-PAGES.md). Import provenance is in [TOOLKIT_IMPORTS.md](TOOLKIT_IMPORTS.md). The user explicitly authorized public source publication on 2026-10-20, and the repository is now public. A binary release is a separate distribution decision. Current publication status and known limits are in [docs/RELEASE.md](docs/RELEASE.md). Bug code uses MIT; preserve LAME’s separate license and bundled source obligations.
+For public-facing README or release preparation, follow the toolkit’s [GitHub project-page guide](https://github.com/jimmytheghost/agentic-toolkit/blob/main/core/GITHUB-PROJECT-PAGES.md) on GitHub. The user explicitly authorized public source publication on 2026-10-20, and the repository is now public. A binary release is a separate distribution decision. Current publication status and known limits are in [docs/RELEASE.md](docs/RELEASE.md). Bug code uses MIT; preserve LAME’s separate license and bundled source obligations.
