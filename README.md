@@ -29,7 +29,7 @@ The app has no accounts, uploads, telemetry, web runtime, or background service.
 
 ## Build it yourself
 
-Current source version: **0.6.2**. Source is publicly available; no downloadable binary release is published.
+Current source version: **0.6.3**. Source is publicly available; no downloadable binary release is published.
 
 Requires **macOS 15 or newer**, Xcode Command Line Tools with a macOS 15+ SDK, and Swift Testing. Previous implementation validation used Swift 6.3.3 on Apple Silicon with Swift 5 language mode and a Swift 5.9 package manifest. Intel, a universal app, and a separate macOS 15 host have not been verified.
 
@@ -62,13 +62,13 @@ Recordings live in `~/Library/Application Support/Bug/Recordings/`. Original sou
 
 ## Where it’s at
 
-The latest implementation validation passed **60 synthetic tests in 8 suites**. That does not establish compatibility with every audio source or live recording quality. Live capture, microphone alignment, permission persistence, long sessions, and several interface flows remain on the [hands-on acceptance checklist](docs/ACCEPTANCE.md). Dated evidence is in [VALIDATION.md](docs/VALIDATION.md).
+The latest implementation validation passed **66 synthetic tests in 8 suites**. That does not establish compatibility with every audio source or live recording quality. Live capture, microphone alignment, permission persistence, long sessions, and several interface flows remain on the [hands-on acceptance checklist](docs/ACCEPTANCE.md). Dated evidence is in [VALIDATION.md](docs/VALIDATION.md).
 
 Known limits:
 
 - **Recording starts when you press Record.** Bug cannot recover earlier audio. It captures the signal available to macOS; if a source app crashes or stops playing, no further audio arrives from it until playback resumes. Individual source apps still need hands-on verification.
 - **Bug’s own crash recovery is partial.** Handled interruptions can salvage readable tracks, but a Bug or system crash can leave source CAF files without finalized metadata. They stay on disk and count toward storage, but do not automatically appear in the library. There is no recovery UI. **Delete All** includes these unfinished session folders.
-- **One corrupt metadata file can prevent the library from loading.** There is no automatic quarantine. Missing source audio is reported when playback or export opens it.
+- **Unreadable recording folders are skipped with a warning count.** Valid entries remain available; refresh retries skipped folders after repair. Files stay unchanged, and there is no automatic quarantine or recovery UI. Missing source audio is reported when playback or export opens it.
 - **Recordings need disk space.** System audio uses roughly 1.4 GB per hour, plus microphone audio. There is no low-space warning, storage cap, rotation, or automatic deletion. Trim retains the originals and does not reclaim space.
 - **Playback and Custom Trim prepare a temporary WAV.** This takes time and extra space, with a roughly 4.14-hour limit at this format. WAV export shares that limit; MP3 export can handle longer recordings.
 - **macOS and source restrictions apply.** Protected content may be unavailable. Device changes, sleep, and permission changes may interrupt capture. Multichannel microphones beyond mono/stereo are unsupported.

@@ -25,7 +25,7 @@ struct LibraryStorageTests {
         try Data(repeating: 0, count: 4096).write(to: unfinished.appendingPathComponent("system.caf"))
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent(".alias"), withDestinationURL: library.directory(for: recording.id))
         #expect(try library.storageBytes(at: root) == expected + 4096)
-        #expect(try library.load() == [recording])
+        #expect(try library.load().recordings == [recording])
     }
 
     @MainActor @Test func refreshTracksFinderRemovalRestorationAndSizeChanges() throws {
@@ -62,11 +62,11 @@ struct LibraryStorageTests {
         try content.write(to: exported)
         let trashed = try #require(try library.delete(recording))
         defer { try? FileManager.default.removeItem(at: trashed) }
-        #expect(try library.load().isEmpty)
+        #expect(try library.load().recordings.isEmpty)
         #expect(try Data(contentsOf: exported) == content)
         #expect(try Data(contentsOf: trashed.appendingPathComponent("system.caf")).count == 512)
         try FileManager.default.moveItem(at: trashed, to: library.directory(for: recording.id))
-        #expect(try library.load() == [recording])
+        #expect(try library.load().recordings == [recording])
     }
     @MainActor @Test(arguments: [false, true])
     func bulkDeletionUsesConfirmedSnapshotAndPreservesFailures(failOne: Bool) throws {
@@ -88,7 +88,7 @@ struct LibraryStorageTests {
         })
         let confirmed = store.recordings
         #expect(confirmed.count == 2)
-        #expect(try library.load().count == 2) // Preparing confirmation does not delete.
+        #expect(try library.load().recordings.count == 2) // Preparing confirmation does not delete.
         let addedLater = try fixture(library)
         store.deleteAll(confirmed)
         #expect(store.recordings.contains(where: { $0.id == addedLater.id }))
@@ -223,7 +223,7 @@ struct LibraryStorageTests {
         store.confirmRecordingRename(to: "  Updated title  ")
         #expect(store.pendingRecordingRename == nil)
         #expect(store.recordings.first(where: { $0.id == first.id })?.title == "Updated title")
-        #expect(try library.load().first(where: { $0.id == first.id })?.title == "Updated title")
+        #expect(try library.load().recordings.first(where: { $0.id == first.id })?.title == "Updated title")
     }
 
 }

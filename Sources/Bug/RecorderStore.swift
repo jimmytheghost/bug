@@ -21,6 +21,7 @@ final class RecorderStore: ObservableObject {
             reminderPresenter.dismiss()
         }
     }
+    @Published private(set) var libraryWarning: String?
     @Published private(set) var recordings: [Recording] = []
     @Published private(set) var recordingBytes: [UUID: Int64] = [:]
     @Published private(set) var librarySessionIDs: [UUID] = []
@@ -577,8 +578,10 @@ final class RecorderStore: ObservableObject {
     /// Reads metadata and file sizes only; never reads audio samples.
     private func reloadLibrary() throws {
         guard let library else { return }
-        librarySessionIDs = try library.sessionIDs()
-        let current = try library.load()
+        let result = try library.load()
+        librarySessionIDs = result.sessionIDs
+        libraryWarning = result.warning
+        let current = result.recordings
         if let id = pendingRecordingDeletion?.id, !current.contains(where: { $0.id == id }) {
             pendingRecordingDeletion = nil
         }

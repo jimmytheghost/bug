@@ -160,8 +160,8 @@ final class AudioTrimTests {
         #expect(reopened.recordings.first?.trimRange == range)
         reopened.undoTrim(recording)
         #expect(reopened.recordings.first?.playbackDuration == 4)
-        #expect(try library.load().first?.trimRange == nil)
-        #expect(try library.load().first?.title == "Renamed")
+        #expect(try library.load().recordings.first?.trimRange == nil)
+        #expect(try library.load().recordings.first?.title == "Renamed")
         #expect(try Data(contentsOf: stored) == original)
     }
 
@@ -174,7 +174,7 @@ final class AudioTrimTests {
         await store.trim(recording)
         #expect(store.errorMessage != nil)
         #expect(store.trimmingID == nil)
-        #expect(try library.load() == [recording])
+        #expect(try library.load().recordings == [recording])
     }
 
     @Test func legacyMetadataDecodesWithoutTrimField() throws {

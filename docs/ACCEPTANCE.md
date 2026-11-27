@@ -88,3 +88,12 @@ Earlier v0.4.1 preservation of unfinished sessions and its popover-attached conf
 - [ ] After the scoped reset and canonical installation, approve Bug again, restart if requested, and confirm actual capture starts.
 - [ ] For the next changed build, install with `scripts/install-app.py`. Verify the reset notice, fresh permission approval, and successful capture afterward.
 - [ ] Verify unchanged-identity installation preserves the grant and running-app installation is refused.
+
+
+## Library resilience · v0.6.3
+
+- [ ] In an isolated disposable library, confirm valid rows remain usable beside an invalid metadata file, with a readable warning count and Library folder/Refresh actions at 360 points.
+- [ ] Repair the disposable metadata and Refresh; confirm the entry returns and warning clears. Confirm operation errors remain visible alongside the library warning.
+- [ ] Verify actual MenuBarExtra sizing and button interaction with both all-invalid and mixed libraries. Synthetic tests/offscreen renders do not establish interactive acceptance. Do not use personal recordings for corruption tests.
+
+The 2026-11-27 pass did not install or relaunch Bug, reset permissions, or perform live capture. Existing hands-on status above is unchanged.
