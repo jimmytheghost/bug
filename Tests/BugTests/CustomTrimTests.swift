@@ -82,7 +82,7 @@ final class CustomTrimTests {
         #expect(store.customTrimState == nil)
         #expect(store.trimmingID == nil)
         #expect(store.recordings.first?.trimRange == AudioTrimRange(startFrame: 24_000, endFrame: 72_000))
-        #expect(try library.load().first?.trimRange == AudioTrimRange(startFrame: 24_000, endFrame: 72_000))
+        #expect(try library.load().recordings.first?.trimRange == AudioTrimRange(startFrame: 24_000, endFrame: 72_000))
         #expect(try Data(contentsOf: stored) == original)
     }
 
@@ -103,6 +103,6 @@ final class CustomTrimTests {
         store.cancelCustomTrim()
 
         #expect(store.customTrimState == nil)
-        #expect(try library.load().first?.trimRange == recording.trimRange)
+        #expect(try library.load().recordings.first?.trimRange == recording.trimRange)
     }
 }

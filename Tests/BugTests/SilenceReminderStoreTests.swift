@@ -113,7 +113,7 @@ struct SilenceReminderStoreTests {
         #expect(f.store.phase == .idle)
         #expect(f.capture.stops == 1)
         #expect(!f.reminder.visible)
-        #expect(try f.library.load().count == 1)
+        #expect(try f.library.load().recordings.count == 1)
         #expect(f.store.recordings.first?.duration == 0.01)
     }
 

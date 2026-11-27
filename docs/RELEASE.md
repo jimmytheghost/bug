@@ -23,7 +23,7 @@ The isolated package inventory contains only the executable, Info.plist, icon, e
 
 See the **2026-10-20** entry in [VALIDATION.md](VALIDATION.md) for executed checks. Debug build, 60 synthetic tests in 8 suites, release packaging, and deep/strict signature verification passed on Apple Silicon/macOS 26.6.2/Swift 6.3.3. The signature is ad hoc; this does not establish notarization, Gatekeeper acceptance, live capture authorization, or other-platform support.
 
-Existing acceptance gaps remain in [ACCEPTANCE.md](ACCEPTANCE.md). They include real capture/listening, individual call-app behavior, microphone alignment, permission persistence, long sessions, and remaining interface interactions. Existing crash-recovery and corrupt-metadata limits are documented in the README and [handoff](HANDOFF.md#known-gaps-and-operational-caveats). No new bug sweep or unrelated fixes were added to this preparation.
+Existing acceptance gaps remain in [ACCEPTANCE.md](ACCEPTANCE.md). They include real capture/listening, individual call-app behavior, microphone alignment, permission persistence, long sessions, and remaining interface interactions. Existing crash-recovery and metadata-repair limits are documented in the README and [handoff](HANDOFF.md#known-gaps-and-operational-caveats). No new bug sweep or unrelated fixes were added to this preparation.
 
 ## Publication status
 

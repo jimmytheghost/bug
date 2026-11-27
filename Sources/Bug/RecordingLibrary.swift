@@ -11,6 +11,23 @@ struct Recording: Identifiable, Codable, Equatable {
     var playbackDuration: TimeInterval { trimRange?.duration ?? duration }
 }
 
+/// A successful root scan may still contain unreadable individual entries.
+struct RecordingLibraryLoad {
+    struct Issue: Equatable {
+        let directoryName: String
+        let reason: String
+    }
+    let recordings: [Recording]
+    let sessionIDs: [UUID]
+    let issues: [Issue]
+
+    var warning: String? {
+        guard !issues.isEmpty else { return nil }
+        let count = issues.count
+        return "Could not load \(count) recording \(count == 1 ? "folder" : "folders"). Files are unchanged. Check the Library folder and refresh after repair."
+    }
+}
+
 struct RecordingLibrary {
     let root: URL
 
@@ -44,20 +61,52 @@ struct RecordingLibrary {
         try JSONEncoder().encode(recording).write(to: directory(for: recording.id).appendingPathComponent("recording.json"), options: .atomic)
     }
 
-    func load() throws -> [Recording] {
-        let directories = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-        return try directories.compactMap { directory in
-            let metadata = directory.appendingPathComponent("recording.json")
-            guard FileManager.default.fileExists(atPath: metadata.path) else { return nil }
-            let recording = try JSONDecoder().decode(Recording.self, from: Data(contentsOf: metadata))
-            guard directory.lastPathComponent == recording.id.uuidString,
-                  recording.systemFilename == URL(fileURLWithPath: recording.systemFilename).lastPathComponent,
-                  recording.microphoneFilename.map({ $0 == URL(fileURLWithPath: $0).lastPathComponent }) ?? true,
-                  recording.trimRange?.isValid ?? true else {
-                throw CocoaError(.fileReadCorruptFile)
+    /// Root/listing failures throw; entry failures are returned without changing any files.
+    func load() throws -> RecordingLibraryLoad {
+        let directories = try FileManager.default.contentsOfDirectory(at: root,
+            includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey], options: .skipsHiddenFiles)
+        var recordings: [Recording] = []
+        var sessionIDs: [UUID] = []
+        var issues: [RecordingLibraryLoad.Issue] = []
+        for directory in directories.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            do {
+                let values = try directory.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+                guard values.isSymbolicLink != true else {
+                    // Never follow a session alias outside the library.
+                    if UUID(uuidString: directory.lastPathComponent) != nil { throw CocoaError(.fileReadCorruptFile) }
+                    continue
+                }
+                guard values.isDirectory == true else { continue }
+                if let id = UUID(uuidString: directory.lastPathComponent), id.uuidString == directory.lastPathComponent {
+                    sessionIDs.append(id)
+                }
+                // Listing distinguishes missing metadata (an unfinished session) from access failure.
+                let names = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+                guard names.contains("recording.json") else { continue }
+                let metadata = directory.appendingPathComponent("recording.json")
+                let metadataValues = try metadata.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                guard metadataValues.isRegularFile == true, metadataValues.isSymbolicLink != true else {
+                    throw CocoaError(.fileReadCorruptFile)
+                }
+                let recording = try JSONDecoder().decode(Recording.self, from: Data(contentsOf: metadata))
+                guard directory.lastPathComponent == recording.id.uuidString,
+                      Self.isSourceFilename(recording.systemFilename),
+                      recording.microphoneFilename.map(Self.isSourceFilename) ?? true,
+                      recording.trimRange?.isValid ?? true else {
+                    throw CocoaError(.fileReadCorruptFile)
+                }
+                recordings.append(recording)
+            } catch {
+                issues.append(.init(directoryName: directory.lastPathComponent, reason: error.localizedDescription))
             }
-            return recording
-        }.sorted { $0.createdAt > $1.createdAt }
+        }
+        return RecordingLibraryLoad(recordings: recordings.sorted { $0.createdAt > $1.createdAt },
+                                    sessionIDs: sessionIDs, issues: issues)
+    }
+
+    private static func isSourceFilename(_ filename: String) -> Bool {
+        !filename.isEmpty && filename != "." && filename != ".."
+            && filename == URL(fileURLWithPath: filename).lastPathComponent
     }
 
     func url(for recording: Recording, microphone: Bool = false) -> URL {

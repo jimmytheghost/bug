@@ -289,6 +289,17 @@ struct BugMenuView: View {
                 Text("\(store.recordings.count) · \(RecorderStore.sizeLabel(store.libraryBytes))").font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
                     .help("Total file sizes in the Library folder, including unfinished sessions. Trim keeps the original files.")
             }
+            if let warning = store.libraryWarning {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(warning, systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack {
+                        Button("Library folder") { store.revealLibrary() }
+                        Button("Refresh") { store.refreshLibrary() }
+                    }.font(.caption)
+                }
+            }
             if store.recordings.isEmpty {
                 VStack(spacing: 6) {
                     Image(systemName: "waveform").font(.system(size: 22)).foregroundStyle(.tertiary)

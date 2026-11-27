@@ -1,6 +1,18 @@
 # Validation
 
-Current baseline: v0.6.2, 60 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+Current baseline: v0.6.3, 66 tests in 8 suites. Sections below are dated release evidence; older “pending” statements describe the state at that pass. Current acceptance status is maintained in [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## Library resilience · 2026-11-27
+
+Environment: Apple Silicon arm64, macOS 26.6.2 (25G83), Apple Swift 6.3.3 Command Line Tools. Base revision `4460ce2`; task branch `codex/library-resilience`. No personal recording was read, captured, modified, or deleted. No installed app, capture permission, or running Bug process was changed.
+
+- `swift build` passed. `scripts/test.sh` explicitly executed **66 tests in 8 suites**, all passing. Swift Testing counts a parameterized test once; the new invalid-entry test additionally exercised eight inputs (identity, system/microphone paths, empty/dot filenames, and negative/empty/reversed trim ranges).
+- Isolated temporary fixtures verified mixed malformed JSON and valid entries, newest-first ordering, unfinished folders without warnings, repeated loads with unchanged source/metadata bytes and root contents, invalid entry rejection, metadata read failure, session symlink rejection, access-denied session versus root behavior, missing/non-directory roots, store warning persistence alongside operation errors, recovery after repair, and last-good snapshot preservation on root failure. Existing trim/export/reminder suites remain passing; no real capture was used.
+- Built the offscreen helper and visually inspected `.build/qa/library-warning.png` at the actual 360-point panel width (720-pixel Retina image). The count, wrapped warning, Library folder/Refresh buttons, valid row, and footer fit without clipping. This is layout evidence only; actual MenuBarExtra interaction remains unchecked in [ACCEPTANCE.md](ACCEPTANCE.md).
+- `scripts/package-app.sh "$PWD/.build/library-resilience-package"` passed for v0.6.3/build 15 with ad-hoc signing and deep/strict verification. Package inventory, bundled licenses/source hash, architecture, and plist were checked. This is an isolated package, not an installed or published binary.
+- README and affected canon now describe the per-entry failure contract and manual repair limits. Local documentation links, code fences, and `git diff --check` passed. The original checkout's unrelated `img/` remains untouched.
+
+The artifact remains in the task worktree. Installation/rollback instructions are in [HANDOFF.md](HANDOFF.md#later-installation-and-rollback). There is no claim that Jimmy has damaged recordings, and no hands-on acceptance box was completed during this pass.
 
 ## User confirmation of inline rename · 2026-11-08
 

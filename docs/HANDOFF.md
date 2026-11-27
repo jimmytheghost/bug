@@ -1,14 +1,16 @@
 # Agent handoff
 
-Last updated: **2026-11-08, inline title renaming**. Current source version: **0.6.2**, build **14**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
+Last updated: **2026-11-27, library resilience**. Current source version: **0.6.3**, build **15**. Read this first, then [ARCHITECTURE.md](ARCHITECTURE.md) for implementation contracts.
 
 ## Current state
+
+- v0.6.3 isolates unreadable recording folders. Valid entries stay available with a persistent warning count and Library folder/Refresh actions; retries clear the warning after repair. UUID, source-path, and trim checks remain strict. No files are deleted, moved, or rewritten on load failure. Root listing failures remain errors and preserve the last good snapshot.
 
 - v0.6.2 makes recording titles editable in place on double-click. Return or focus loss commits a nonempty name; Escape cancels. The Rename menu item and accessibility action use the same field. Names remain metadata-only, preserving source audio and trim bounds. Use `git log -1` for the latest committed revision.
 - User confirmed on **2026-11-08** that double-clicking a title lets them rename it as requested. Extended keyboard, cancellation, refresh, and relaunch checks remain in [ACCEPTANCE.md](ACCEPTANCE.md).
 - Public repository: [jimmytheghost/bug](https://github.com/jimmytheghost/bug). Branch `main` tracks `origin/main`. The user authorized publication on 2026-10-20; public visibility and anonymous access were verified.
-- Latest validation artifact is `.build/inline-rename-package/Bug.app` (v0.6.2/build 14, with bundled MIT license). Installed through the canonical installer and reopened at `~/Applications/Bug.app`. Deliver updates only through `scripts/install-app.py`.
-- Latest executed validation, **2026-11-08**: debug build and **60 tests in 8 suites** passed. The isolated inline-rename render fits the 360-point panel. Packaging/installation evidence is in [VALIDATION.md](VALIDATION.md). No live audio or personal recording was used.
+- Latest validation artifact is `.build/library-resilience-package/Bug.app` in the `codex/library-resilience` task worktree (v0.6.3/build 15, with bundled MIT/LAME materials). It has **not** been installed or launched. The existing canonical app is preserved. Deliver updates only through `scripts/install-app.py`.
+- Latest executed validation, **2026-11-27**: debug build and **66 tests in 8 suites** passed, plus isolated packaging. Synthetic warning preview evidence is in [VALIDATION.md](VALIDATION.md). No live audio or personal recording was used.
 - The user confirmed v0.4.3 Delete All works. Their screenshot showed 13 session folders moved and zero saved recordings remaining. This confirms the successful deletion flow, not every Cancel/recovery/disabled-state scenario.
 - The user confirmed v0.5.1 row deletion succeeds and no longer recurs, but the standalone alert dismisses the menu-bar panel. v0.5.2 replaces that alert with a store-backed overlay inside the existing panel. Cancel and Move to Trash clear the pending request before returning to the still-open recording list. Hands-on confirmation remains pending.
 - README now includes recorder and Custom Trim images rendered from the current views at 360 points, using isolated fixtures. See [image provenance](images/README.md); these do not verify live recording or interactive behavior.
@@ -38,7 +40,7 @@ Per-recording Trash uses an in-panel confirmation overlay backed by `pendingReco
 
 The user clarified that permission failed **after enabling it**. Logs confirmed the saved v0.3.0 identity was still used for running v0.4.4. Our old workflow (launch each versioned staging build, ask the user to reapprove) left stale grants behind.
 
-The canonical installation is `~/Applications/Bug.app` v0.6.2 build 14. It was installed through the canonical installer and reopened from that path. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
+The last documented canonical installation is `~/Applications/Bug.app` v0.6.2 build 14; this pass did not inspect or change it. It was installed through the canonical installer and reopened from that path. The installer reset Bug's ScreenCapture approval because the ad-hoc identity changed; the user must approve capture again and restart if macOS requests it. Installation alone does not prove runtime authorization.
 
 **Every delivered update must use `python3 scripts/install-app.py <staged Bug.app>`.** It requires Bug to be quit, stages/verifies the bundle, resets only Bug ScreenCapture when the designated requirement changes, backs up the old app, and installs at the canonical path. Reopen that copy and let the user approve it. Never launch directly from staged version folders. Read [PERMISSIONS.md](PERMISSIONS.md) for diagnostics and explicit same-build repair.
 
@@ -52,6 +54,10 @@ Public source publication is documented in [RELEASE.md](RELEASE.md). The user au
 2. Use [ACCEPTANCE.md](ACCEPTANCE.md) for remaining Custom Trim persistence and WAV/MP3 boundary comparison. Remaining checks also include real capture/listening, reminder behavior, permission persistence, footer resizing, and broader cleanup recovery scenarios.
 3. Prioritize known gaps only with the user. Low-space warnings, automatic retention, and crash recovery are candidates, not implemented features.
 4. Commit and push **every completed pass**, as explicitly requested. Verify a clean checkpoint before new changes. Update affected canon and validation; preserve public visibility and unrelated work.
+
+## Later installation and rollback
+
+This pass authorizes development and isolated packaging only. When installation is authorized, stop recording and quit Bug, then run `python3 scripts/install-app.py .build/library-resilience-package/Bug.app` from the task worktree and open only `~/Applications/Bug.app`. Reapprove capture if the installer reports an identity change. For rollback, quit Bug and pass the chosen previous bundle from `~/Library/Application Support/Bug/BuildBackups/` through the same installer; reapproval may be needed again. Neither installation nor rollback changes recording metadata format.
 
 ## Resume commands
 
@@ -74,7 +80,7 @@ Packaging builds the host architecture. The encoder script supports `ARCHS="arm6
 
 ### Offscreen layout preview
 
-The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--trim-fixture`, `--trimmed-fixture`, `--inline-rename`, `--delete-confirmation`, `--settings`, `--deleted-fixture`, or `--silence-reminder` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
+The render helper now injects an isolated temporary library and preference suite; it does not read personal recordings or record audio. Use `--library-warning`, `--trim-fixture`, `--trimmed-fixture`, `--inline-rename`, `--delete-confirmation`, `--settings`, `--deleted-fixture`, or `--silence-reminder` for synthetic layout states. Fixture metadata is only for layout and has no playable source files.
 
 On the original Apple Silicon host:
 
@@ -96,7 +102,7 @@ AppKit hosting is intentional: a pure SwiftUI `ImageRenderer` rendered native sw
 ## Known gaps and operational caveats
 
 - **Crash recovery is partial.** Capture can salvage readable tracks during handled interruptions, and the store can add the resulting recording to the library. A crash, failed start, or metadata write failure can leave a directory without `recording.json`; startup ignores these directories. There is no journal, automatic reimport, or recovery UI. They remain available for manual recovery until the user confirms Delete All, which intentionally includes unfinished UUID folders.
-- **One corrupt metadata file can fail the whole library load.** The loader rejects bad JSON, mismatched IDs, and non-basename source paths. It does not quarantine a bad entry or verify all source files exist when listing. Missing audio is reported when playback/export tries to open it.
+- **Unreadable folders need manual repair.** They are omitted with a warning count while valid recordings load. No automatic quarantine or recovery UI exists. Unfinished sessions remain off-list without warning. The loader does not verify source audio exists; missing audio is reported when playback/export opens it. Root listing failures still report an error.
 - **Long recordings use disk space.** Float32 stereo system audio is about 1.4 GB/hour plus native microphone audio. Silence is written in bounded chunks, not sparse files. There is no quota, free-space preflight, automatic retention, or rotation.
 - **Playback prepares the selected mixed WAV.** It can be slow and needs extra temporary disk space; it shares WAV's roughly 4.14-hour limit. MP3 export can still work above that WAV limit. A force quit may leave a temporary preview or export staging file.
 - **Custom Trim also prepares an untrimmed mixed WAV for audition.** Its waveform analysis remains bounded at 7,200 detail peaks (at most 720 in the overview), but editor preparation needs temporary disk space and shares the same roughly 4.14-hour WAV limit. Save/Cancel removes the preview during normal operation.

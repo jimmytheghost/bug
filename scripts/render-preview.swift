@@ -17,7 +17,8 @@ struct BugPreview {
             try? FileManager.default.removeItem(at: directory)
             preferences.removePersistentDomain(forName: suite)
         }
-        let hasTrimFixture = CommandLine.arguments.contains("--trim-fixture")
+        let hasTrimFixture = CommandLine.arguments.contains("--library-warning")
+            || CommandLine.arguments.contains("--trim-fixture")
             || CommandLine.arguments.contains("--trimmed-fixture")
             || CommandLine.arguments.contains("--custom-trim")
             || CommandLine.arguments.contains("--custom-trim-head-zoom")
@@ -39,6 +40,10 @@ struct BugPreview {
             }
             try library.save(recording)
             fixtureRecording = recording
+        }
+        if CommandLine.arguments.contains("--library-warning") {
+            let broken = try library.createSession(id: UUID())
+            try Data("{invalid".utf8).write(to: broken.appendingPathComponent("recording.json"))
         }
         let content: AnyView
         if CommandLine.arguments.contains("--silence-reminder") {
